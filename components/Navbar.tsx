@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { HamburgerIcon } from "@/components/micro-interactions/hamburger";
@@ -14,8 +15,14 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Hide Navbar completely on all admin routes
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
 
   useEffect(() => {
     const handleScroll = () => {

@@ -1,5 +1,3 @@
-"use client";
-
 import { Playfair_Display } from "next/font/google";
 import LightRays from "@/components/LightRays";
 import TiltedCard from "@/components/TiltedCard";
@@ -12,6 +10,7 @@ import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 import ScrollBlurSection from "@/components/ScrollBlurSection";
 import { ArrowRight } from "lucide-react";
+import { getProjects, getExperiences } from "@/app/admin/actions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -20,7 +19,11 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-export default function Home() {
+export default async function Home() {
+  const [projects, experiences] = await Promise.all([
+    getProjects(),
+    getExperiences(),
+  ]);
   return (
     <div className="w-full">
       <ScrollBlurSection id="home">
@@ -255,11 +258,11 @@ export default function Home() {
     </ScrollBlurSection>
 
     <ScrollBlurSection>
-      <WorkExperience />
+      <WorkExperience initialExperiences={experiences} />
     </ScrollBlurSection>
 
     <ScrollBlurSection>
-      <Projects />
+      <Projects initialProjects={projects} />
     </ScrollBlurSection>
 
     <ScrollBlurSection>

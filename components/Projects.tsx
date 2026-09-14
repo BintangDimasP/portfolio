@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { ImageExpansionSlider, SlideItem } from "@/components/ui/image-expansion";
+import { supabase } from "@/lib/supabase/client";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -12,150 +13,53 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-const projectSlides: SlideItem[] = [
-  {
-    id: 1,
-    category: "Web Development",
-    title: "Pilmapres FST UNJA: Selection of Outstanding Students",
-    company: "FST Universitas Jambi (UNJA) • Sistem Informasi",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://github.com",
-    description:
-      "The Selection of Outstanding Students (Pilmapres) FST UNJA previously relied on manual physical document collection and Excel-based calculations, which were highly prone to human error. Developed a multi-role web ecosystem (Admin, Jury, Student) that automates scoring based on preset weight matrices, ensuring transparent, real-time, and 100% accurate student rankings.",
-    modules: [
-      "Multi-Role Authentication System (Admin, Jury, Student)",
-      "Automated Matrix Scoring Logic & Weightage Calculations",
-      "Live Ranking Leaderboard & Real-Time Analytics",
-      "Document Validation Workflow & Portfolio Archiving",
-    ],
-    techStack: ["Next.js", "TypeScript", "Tailwind CSS", "PostgreSQL", "Prisma", "PXP Matrix"],
-  },
-  {
-    id: 2,
-    category: "Mobile App",
-    title: "Nyawit Mobile App: Smart Agriculture & Supply Tracking",
-    company: "Mata Kuliah: Mobile Application Development",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://github.com",
-    description:
-      "Aplikasi mobile berbasis offline-first yang dirancang untuk mendukung petani dan pengepul kelapa sawit dalam pencatatan panen digital, kalkulasi tonase, serta pelacakan rantai pasok dari perkebunan hingga pabrik kelapa sawit secara terverifikasi.",
-    modules: [
-      "Modul Offline-First SQLite Synchronization",
-      "Modul Pencatatan Panen & Kalkulasi Tonase Otomatis",
-      "Modul Pemetaan Geolocation Polygon Lahan Sawit",
-      "Modul Pelacakan Logistik & Supply Chain Manifest",
-    ],
-    techStack: ["Flutter", "Dart", "SQLite", "Firebase", "Google Maps API", "Offline-First"],
-  },
-  {
-    id: 3,
-    category: "UI/UX Design",
-    title: "Pelindo Marine Service Portal: Operations & Logistics",
-    company: "PT Pelindo Marine Service • Enterprise Logistics",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://figma.com",
-    description:
-      "Redesain antarmuka portal layanan operasional kapal dan pemodelan alur kerja sistem berbasis BPMN 2.0. Memangkas birokrasi manual pelaporan kapal, mempercepat alokasi armada tunda (tugboat), dan menyediakan pelacakan kapal real-time.",
-    modules: [
-      "Modul Pelayanan Sandar & Keberangkatan Kapal (Vessel Clearance)",
-      "Modul Dispatching Armada Kapal Tunda & Pemanduan",
-      "Modul Billing Tarif Layanan Marine Otomatis",
-      "Modul Executive Dashboard & Operational Vessel Tracking",
-    ],
-    techStack: ["Figma", "BPMN 2.0", "UI/UX Research", "Design System", "Enterprise Architecture"],
-  },
-  {
-    id: 4,
-    category: "Web Development",
-    title: "Smart City Dashboard: Centralized Public Telemetry",
-    company: "Dinas Kominfo • Public Service Integration",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1477959858617-67f30bc75b82?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://github.com",
-    description:
-      "Portal integrasi telemetri cerdas kota dan sistem pengaduan terpadu masyarakat. Menyatukan data sensor cuaca/kualitas udara, pemantauan status jalan, dan eskalasi aduan warga langsung ke dinas teknis terkait.",
-    modules: [
-      "Modul GIS Map Telemetri Sensor Lingkungan Real-Time",
-      "Modul Pelaporan & Disposisi Aduan Publik Cerdas",
-      "Modul Rekapitulasi Indikator Kinerja Pelayanan Publik",
-      "Modul Role-Based Access Control Pegawai & Administrator",
-    ],
-    techStack: ["React", "Node.js", "Express", "Leaflet GIS", "Tailwind CSS", "RESTful API"],
-  },
-  {
-    id: 5,
-    category: "UI/UX Design",
-    title: "Fintech Mobile Wallet & Contactless Payment Suite",
-    company: "Mata Kuliah: Desain Antarmuka & Pengalaman Pengguna (UI/UX)",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1556742049-0a67e5572263?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://figma.com",
-    description:
-      "Studi kasus desain produk finansial digital yang mengedepankan keamanan biometrik, kemudahan transaksi QRIS tanpa hambatan, serta fitur tabungan berkantong (pocket vaults) untuk milenial dan Gen Z.",
-    modules: [
-      "Modul E-KYC Verifikasi Identitas & Biometrik Cepat",
-      "Modul Transaksi QRIS Nirsentuh & Fitur Split-Bill",
-      "Modul Target Tabungan Otomatis (Pocket Vaults)",
-      "Modul Visualisasi Laporan Keuangan & Pengeluaran Bulanan",
-    ],
-    techStack: ["Figma", "Micro-Interactions", "Wireframing", "Prototyping", "QRIS Flow", "Design Tokens"],
-  },
-  {
-    id: 6,
-    category: "System Design",
-    title: "LEGI Enterprise Architecture & Flow Analysis",
-    company: "Mata Kuliah: Perancangan Arsitektur Enterprise (TOGAF)",
-    buttonText: "Visit Site",
-    image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
-    images: [
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop",
-      "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?q=80&w=1200&auto=format&fit=crop",
-    ],
-    url: "https://github.com",
-    description:
-      "Dokumentasi dan perancangan arsitektur enterprise komprehensif mengadopsi TOGAF ADM. Menyelaraskan proses bisnis manufaktur, arsitektur data, portofolio aplikasi, dan infrastruktur komputasi awan.",
-    modules: [
-      "Modul Business Architecture & Value Stream Mapping",
-      "Modul Data & Application Architecture Blueprint",
-      "Modul Technology & Cloud Infrastructure Topology",
-      "Modul Gap Analysis, Transition Planning, & Risk Mitigation",
-    ],
-    techStack: ["TOGAF ADM", "BPMN 2.0", "Enterprise Architect", "Cloud Architecture", "Data Modeling"],
-  },
-];
+export default function Projects({ initialProjects }: { initialProjects?: any[] }) {
+  const [dbProjects, setDbProjects] = useState<any[]>(initialProjects || []);
 
-const categories = ["All", "Web Development", "Mobile App", "UI/UX Design", "System Design"];
+  useEffect(() => {
+    if (initialProjects) {
+      setDbProjects(initialProjects);
+    }
+  }, [initialProjects]);
 
-export default function Projects() {
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const { data, error } = await supabase
+          .from("projects")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: false });
+
+        if (!error && data) {
+          setDbProjects(data);
+        }
+      } catch (err) {
+        // Ignored
+      }
+    }
+    fetchProjects();
+  }, []);
+
+  const slides: SlideItem[] = dbProjects.map((p) => ({
+    id: p.id,
+    category: p.category,
+    title: p.title,
+    company: p.company,
+    buttonText: p.button_text || "Visit Site",
+    image: p.image,
+    images: p.images && p.images.length > 0 ? p.images : [p.image],
+    url: p.url,
+    description: p.description,
+    modules: p.modules || [],
+    techStack: p.tech_stack || [],
+  }));
+
+  const dynamicTabs = [
+    "All",
+    ...Array.from(new Set(slides.map((s) => s.category).filter((c): c is string => Boolean(c)))),
+  ];
+
   return (
     <section
       id="projects"
@@ -183,18 +87,23 @@ export default function Projects() {
               Projects
             </span>
           </h2>
-         
         </div>
 
         {/* Image Expansion Slider Carousel */}
         <div className="w-full">
-          <ImageExpansionSlider
-            slides={projectSlides}
-            tabs={categories}
-          />
+          {slides.length === 0 ? (
+            <div className="py-16 text-center text-neutral-500">
+              <p className="text-base font-semibold text-neutral-800">Belum ada proyek yang dipublikasikan.</p>
+              <p className="text-xs text-neutral-400 mt-1">Tambahkan portofolio Anda melalui Admin CMS.</p>
+            </div>
+          ) : (
+            <ImageExpansionSlider
+              slides={slides}
+              tabs={dynamicTabs.length > 1 ? dynamicTabs : ["All"]}
+            />
+          )}
         </div>
       </div>
     </section>
   );
 }
-

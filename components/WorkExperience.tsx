@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
+import { supabase } from "@/lib/supabase/client";
+import { sortExperiencesChronologically } from "@/lib/experience-sorter";
 
 interface ExperienceItem {
   year: string;
@@ -15,58 +17,7 @@ interface ExperienceItem {
   side: "left" | "right"; // Posisi card: kiri atau kanan
 }
 
-const experiences: ExperienceItem[] = [
-  {
-    year: "2026",
-    role: "Graphic Design",
-    type: "Freelance",
-    company: "Excel Expert",
-    location: "WFA",
-    period: "May - Present",
-    description:
-      "Designing and deploying end-to-end applications. Fully involved in developing scalable web systems, offline-first mobile apps, and institutional information systems.",
-    skills: ["Figma", "Canva", "Excel"],
-    side: "left",
-  },
-  {
-    year: "2026",
-    role: "System Analyst & UI/UX Designer",
-    type: "Internship",
-    company: "PT Pelindo Marine Service LEGI",
-    location: "Surabaya, Indonesia",
-    period: "May - September",
-    description:
-      "Analyzed business process workflows using BPMN 2.0 with Bizagi & Visio. Designed high-fidelity UI/UX wireframes, prototypes, and user flows in Figma for enterprise portals.",
-    skills: ["System Analysis", "Figma", "Bizagi", "Microsoft Visio", "UI/UX Design", "BPMN 2.0"],
-    side: "right", // Item 2: Card di Kanan, Tahun di Kiri
-  },
-  {
-    year: "2025",
-    role: "Junior Fullstack Web Developer",
-    type: "Internship",
-    company: "Dinas Komunikasi & Informatika Jatim",
-    location: "Surabaya, Indonesia",
-    period: "July - September",
-    description:
-      "Analyzed business process workflows using BPMN 2.0 with Bizagi & Visio. Designed high-fidelity UI/UX wireframes, prototypes, and user flows in Figma for enterprise portals.",
-    skills: ["System Analysis", "Figma", "Bizagi", "Microsoft Visio", "UI/UX Design", "BPMN 2.0"],
-    side: "left", // Item 2: Card di Kanan, Tahun di Kiri
-  },
-  {
-    year: "2024",
-    role: "Graphic Design",
-    type: "Volunteer",
-    company: "Badan Pusat Statistik Jatim",
-    location: "Surabaya, Indonesia",
-    period: "July - September",
-    description:
-      "Analyzed business process workflows using BPMN 2.0 with Bizagi & Visio. Designed high-fidelity UI/UX wireframes, prototypes, and user flows in Figma for enterprise portals.",
-    skills: ["System Analysis", "Figma", "Bizagi", "Microsoft Visio", "UI/UX Design", "BPMN 2.0"],
-    side: "right", // Item 2: Card di Kanan, Tahun di Kiri
-  },
-];
-
-export default function WorkExperience() {
+export default function WorkExperience({ initialExperiences }: { initialExperiences?: any[] }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -74,6 +25,46 @@ export default function WorkExperience() {
   });
 
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+  const [dbExperiences, setDbExperiences] = useState<any[]>(() =>
+    sortExperiencesChronologically(initialExperiences || [])
+  );
+
+  useEffect(() => {
+    if (initialExperiences) {
+      setDbExperiences(sortExperiencesChronologically(initialExperiences));
+    }
+  }, [initialExperiences]);
+
+  useEffect(() => {
+    async function fetchExperiences() {
+      try {
+        const { data, error } = await supabase
+          .from("experiences")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: false });
+
+        if (!error && data) {
+          setDbExperiences(sortExperiencesChronologically(data));
+        }
+      } catch (err) {
+        // Ignored
+      }
+    }
+    fetchExperiences();
+  }, []);
+
+  const list: ExperienceItem[] = sortExperiencesChronologically(dbExperiences).map((e, index) => ({
+    year: e.year,
+    role: e.role,
+    type: e.type,
+    company: e.company,
+    location: e.location,
+    period: e.period,
+    description: e.description,
+    skills: e.skills || [],
+    side: index % 2 === 0 ? "left" : "right",
+  }));
 
   return (
     <section id="experience" className="relative w-full py-20 px-4 sm:px-6 md:px-12 bg-black text-white overflow-hidden">
@@ -84,11 +75,16 @@ export default function WorkExperience() {
           <h2 className="text-[28px] md:text-[38px] font-bold text-white tracking-tight mb-3">
             Work Experience
           </h2>
-          
         </div>
 
         {/* Timeline Container */}
-        <div className="relative">
+        {list.length === 0 ? (
+          <div className="py-16 text-center text-neutral-400">
+            <p className="text-base font-medium">Belum ada pengalaman kerja yang dipublikasikan.</p>
+            <p className="text-xs text-neutral-500 mt-1">Tambahkan riwayat karir melalui Admin CMS.</p>
+          </div>
+        ) : (
+          <div className="relative">
           
           {/* Central Vertical Line (Background Track) */}
           <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-[2px] -translate-x-1/2 bg-neutral-800">
@@ -101,8 +97,8 @@ export default function WorkExperience() {
 
           {/* Timeline Items (Selang-seling) */}
           <div className="flex flex-col gap-12 md:gap-20">
-            {experiences.map((item, index) => {
-              const isCardLeft = item.side === "left";
+            {list.map((item, index) => {
+              const isCardLeft = index % 2 === 0;
 
               return (
                 <div
@@ -142,8 +138,9 @@ export default function WorkExperience() {
             })}
           </div>
         </div>
-      </div>
-    </section>
+      )}
+    </div>
+  </section>
   );
 }
 

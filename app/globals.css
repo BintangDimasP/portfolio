@@ -1,5 +1,83 @@
 @import "tailwindcss";
 
+/* ============================================================
+   ADMIN CMS - TailAdmin Design System Tokens
+   ============================================================ */
+@theme {
+  /* Brand / Primary - Charcoal Black (Not jet black #000) */
+  --color-brand-25: #fafafa;
+  --color-brand-50: #f4f4f5;
+  --color-brand-100: #e4e4e7;
+  --color-brand-200: #d4d4d8;
+  --color-brand-300: #a1a1aa;
+  --color-brand-400: #71717a;
+  --color-brand-500: #18181b; /* Sleek Charcoal Black */
+  --color-brand-600: #27272a; /* Slightly lighter hover */
+  --color-brand-700: #3f3f46;
+  --color-brand-800: #52525b;
+  --color-brand-900: #09090b;
+  --color-brand-950: #040405;
+
+  /* Gray scale */
+  --color-gray-25: #fcfcfd;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f2f4f7;
+  --color-gray-200: #e4e7ec;
+  --color-gray-300: #d0d5dd;
+  --color-gray-400: #98a2b3;
+  --color-gray-500: #667085;
+  --color-gray-600: #475467;
+  --color-gray-700: #344054;
+  --color-gray-800: #1d2939;
+  --color-gray-900: #101828;
+
+  /* Success */
+  --color-success-50: #ecfdf3;
+  --color-success-100: #d1fadf;
+  --color-success-500: #12b76a;
+  --color-success-600: #039855;
+
+  /* Error */
+  --color-error-50: #fef3f2;
+  --color-error-100: #fee4e2;
+  --color-error-500: #f04438;
+  --color-error-600: #d92d20;
+
+  /* Warning */
+  --color-warning-50: #fffaeb;
+  --color-warning-100: #fef0c7;
+  --color-warning-500: #f79009;
+  --color-warning-600: #dc6803;
+
+  /* Admin Shadows */
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
+  --shadow-theme-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1), 0px 1px 2px 0px rgba(16, 24, 40, 0.06);
+  --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1), 0px 2px 4px -2px rgba(16, 24, 40, 0.06);
+  --shadow-theme-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08), 0px 4px 6px -2px rgba(16, 24, 40, 0.03);
+}
+
+/* Admin menu utility classes */
+@utility admin-menu-item {
+  @apply relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-150;
+}
+@utility admin-menu-item-active {
+  @apply bg-brand-500 text-white font-medium shadow-theme-xs;
+}
+@utility admin-menu-item-inactive {
+  @apply text-gray-700 hover:bg-gray-100 hover:text-gray-900;
+}
+@utility admin-menu-icon-active {
+  @apply text-white;
+}
+@utility admin-menu-icon-inactive {
+  @apply text-gray-400 group-hover:text-gray-700;
+}
+@utility no-scrollbar {
+  &::-webkit-scrollbar { display: none; }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 :root {
   /* Glass variables - iOS-style: low opacity, heavy blur */
   --glass-bg: linear-gradient(135deg,

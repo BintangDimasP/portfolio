@@ -9,7 +9,7 @@ export interface SlideItem {
   category?: string;
   title: string;
   company?: string;
-  buttonText: string;
+  buttonText?: string;
   image: string;
   images?: string[];
   url?: string;
@@ -29,7 +29,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 1,
     category: "Web Development",
     title: "E-Recruitment System: Automated Candidate Assessment",
-    buttonText: "Live Demo",
+    company: "FST Universitas Jambi",
     image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1200&auto=format&fit=crop",
@@ -43,7 +43,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 2,
     category: "Mobile App",
     title: "Nyawit Mobile App: Smart Agriculture & Supply Tracking",
-    buttonText: "View Project",
+    company: "AgriTech Solution",
     image: "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?q=80&w=1200&auto=format&fit=crop",
@@ -57,7 +57,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 3,
     category: "UI/UX Design",
     title: "Pelindo Marine Service Portal: Operations & Logistics",
-    buttonText: "Case Study",
+    company: "PT Pelindo Marine Service",
     image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1200&auto=format&fit=crop",
@@ -71,7 +71,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 4,
     category: "Web Development",
     title: "Smart City Dashboard: Centralized Public Telemetry",
-    buttonText: "Live Demo",
+    company: "Dinas Kominfo",
     image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=1200&auto=format&fit=crop",
@@ -85,7 +85,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 5,
     category: "UI/UX Design",
     title: "Fintech Mobile Wallet & Contactless Payment Suite",
-    buttonText: "View Design",
+    company: "Fintech Lab",
     image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=1200&auto=format&fit=crop",
@@ -99,7 +99,7 @@ const DEFAULT_SLIDES: SlideItem[] = [
     id: 6,
     category: "System Design",
     title: "LEGI Enterprise Architecture & Flow Analysis",
-    buttonText: "View Blueprint",
+    company: "Enterprise Architect Team",
     image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
     images: [
       "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop",
@@ -332,30 +332,20 @@ export function ImageExpansionSlider({
               </div>
 
               {/* Content overlay */}
-              <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
+              <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-6">
                 <h3
-                  className="text-sm sm:text-base lg:text-lg font-bold text-white mb-4 leading-tight tracking-tight truncate max-w-[95%]"
+                  className="text-sm sm:text-base lg:text-lg font-bold text-white leading-tight tracking-tight truncate max-w-[95%]"
                   title={slide.title}
                 >
                   {slide.title}
                 </h3>
-                {slide.url ? (
-                  <a
-                    href={slide.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-fit px-3.5 py-1.5 bg-white text-black font-bold text-[10px] tracking-tight rounded-[5px] transition-all duration-300 hover:bg-zinc-200 active:scale-95 shadow-md shadow-black/20 inline-flex items-center gap-1 cursor-pointer"
+                {slide.company && (
+                  <p
+                    className="text-xs sm:text-[13px] font-medium text-white/80 mt-1 truncate max-w-[95%]"
+                    title={slide.company}
                   >
-                    {slide.buttonText} ↗
-                  </a>
-                ) : (
-                  <button
-                    type="button"
-                    className="w-fit px-3.5 py-1.5 bg-white text-black font-bold text-[10px] tracking-tight rounded-[5px] transition-all duration-300 hover:bg-zinc-200 active:scale-95 shadow-md shadow-black/20 cursor-pointer"
-                  >
-                    {slide.buttonText}
-                  </button>
+                    {slide.company}
+                  </p>
                 )}
               </div>
             </div>

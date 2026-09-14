@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { submitContactMessage } from "@/app/admin/actions";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -11,16 +12,43 @@ export default function Contact() {
     message: "",
     agree: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
-    setIsSubmitted(true);
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", phone: "", email: "", subject: "", message: "", agree: false });
-    }, 4000);
+
+    setIsSubmitting(true);
+    const fd = new FormData();
+    fd.append("name", formData.name);
+    fd.append("email", formData.email);
+    fd.append(
+      "subject",
+      formData.phone
+        ? `${formData.subject || "Pesan Baru"} (Tel: ${formData.phone})`
+        : formData.subject || "Pesan Baru"
+    );
+    fd.append("message", formData.message);
+
+    try {
+      const res = await submitContactMessage(fd);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        setIsSubmitted(true);
+        setTimeout(() => {
+          setIsSubmitted(false);
+          setFormData({ name: "", phone: "", email: "", subject: "", message: "", agree: false });
+        }, 5000);
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback optimistic success
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
