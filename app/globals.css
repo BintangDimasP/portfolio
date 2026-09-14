@@ -1,26 +1,168 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Glass variables - iOS-style: low opacity, heavy blur */
+  --glass-bg: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.15),
+    0 1px 4px rgba(0, 0, 0, 0.08),
+    0 0 0 0.5px rgba(255, 255, 255, 0.1) inset,
+    0 0 16px rgba(255, 255, 255, 0.08) inset;
+  --glass-shadow-lg:
+    0 8px 40px rgba(0, 0, 0, 0.2),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 0 0 0.5px rgba(255, 255, 255, 0.12) inset,
+    0 0 24px rgba(255, 255, 255, 0.1) inset;
+  --blur: 60px;
+  --blur-sm: 30px;
+  --blur-lg: 80px;
+  /* Frosted = sedikit lebih tebal dari standard, tapi tetap subtle */
+  --glass-frosted-bg: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0.06) 50%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  --glass-frosted-border: rgba(255, 255, 255, 0.18);
+  --glass-frosted-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.12),
+    0 0 0 0.5px rgba(255, 255, 255, 0.15) inset,
+    0 0 24px rgba(255, 255, 255, 0.12) inset;
+  --blur-frosted: 60px;
+  --glass-fluted-pattern: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.08) 0px,
+    rgba(255, 255, 255, 0.15) 4px,
+    rgba(255, 255, 255, 0.08) 8px,
+    rgba(255, 255, 255, 0.02) 10px,
+    rgba(255, 255, 255, 0.08) 12px
+  );
+  --glass-crystal-bg: rgba(255, 255, 255, 0.3);
+  --glass-crystal-border: rgba(255, 255, 255, 0.3);
+  --glass-crystal-shadow: 0 0 20px rgba(0, 0, 0, 0.2), 0 0 30px rgba(255, 255, 255, 0.1);
+  --glass-crystal-shadow-hover: 0 0 25px rgba(0, 0, 0, 0.3), 0 0 35px rgba(255, 255, 255, 0.15);
+  --blur-crystal: 2px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  /* Dark mode: lebih gelap & transparan — iOS feel */
+  --glass-bg: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.2),
+    0 0 0 0.5px rgba(255, 255, 255, 0.12) inset,
+    0 0 16px rgba(255, 255, 255, 0.1) inset;
+  --glass-shadow-lg:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    0 0 0 0.5px rgba(255, 255, 255, 0.15) inset,
+    0 0 24px rgba(255, 255, 255, 0.12) inset;
+  --blur: 60px;
+  --blur-sm: 30px;
+  --blur-lg: 80px;
+  --glass-frosted-bg: linear-gradient(135deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.07) 100%
+  );
+  --glass-frosted-border: rgba(255, 255, 255, 0.2);
+  --glass-frosted-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    0 0 0 0.5px rgba(255, 255, 255, 0.18) inset,
+    0 0 28px rgba(255, 255, 255, 0.1) inset;
+  --blur-frosted: 60px;
+  --glass-fluted-pattern: repeating-linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0px,
+    rgba(255, 255, 255, 0.08) 4px,
+    rgba(255, 255, 255, 0.03) 8px,
+    rgba(255, 255, 255, 0.01) 10px,
+    rgba(255, 255, 255, 0.03) 12px
+  );
+  --glass-crystal-bg: rgba(255, 255, 255, 0.07);
+  --glass-crystal-border: rgba(255, 255, 255, 0.2);
+  --glass-crystal-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 30px rgba(255, 255, 255, 0.08);
+  --glass-crystal-shadow-hover: 0 0 25px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 255, 255, 0.12);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer utilities {
+  .glass-bg {
+    background-image: var(--glass-bg);
+    background-color: transparent;
+    backdrop-filter: blur(var(--blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%);
+    border: 0.5px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-frosted {
+    background-image: var(--glass-frosted-bg) !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+    -webkit-backdrop-filter: blur(var(--blur-frosted)) saturate(200%) !important;
+    border: 0.5px solid var(--glass-frosted-border) !important;
+    box-shadow: var(--glass-frosted-shadow) !important;
+  }
+
+  .glass-fluted {
+    background-image: var(--glass-fluted-pattern), var(--glass-bg) !important;
+    background-color: transparent !important;
+    backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(var(--blur)) saturate(180%) !important;
+    border: 0.5px solid var(--glass-border) !important;
+    box-shadow: var(--glass-shadow) !important;
+  }
+
+  .glass-crystal {
+    position: relative;
+    background-color: var(--glass-crystal-bg) !important;
+    backdrop-filter: blur(var(--blur-crystal)) !important;
+    -webkit-backdrop-filter: blur(var(--blur-crystal)) !important;
+    border: 1px solid var(--glass-crystal-border) !important;
+    box-shadow: var(--glass-crystal-shadow) !important;
+    transition: all 0.3s ease !important;
+    background-image: linear-gradient(to bottom right, rgba(255, 255, 255, 0.15), transparent 50%) !important;
+  }
+
+  .glass-crystal:hover {
+    box-shadow: var(--glass-crystal-shadow-hover) !important;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: #F2F0EF;
 }
+
+.light-rays-container,
+.plasma-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Sembunyikan Navbar secara halus saat modal preview terbuka */
+body.preview-modal-open nav {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translateY(-20px) !important;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+

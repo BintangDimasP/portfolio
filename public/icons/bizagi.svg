@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bizagiGrad" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#00B2E3"/>
+      <stop offset="1" stop-color="#006C9B"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bizagiGrad)"/>
+  <path d="M20 16C20 14.8954 20.8954 14 22 14H31C39.2843 14 46 20.7157 46 29C46 37.2843 39.2843 44 31 44H22C20.8954 44 20 43.1046 20 42V16ZM27 21V37H31C35.4183 37 39 33.4183 39 29C39 24.5817 35.4183 21 31 21H27Z" fill="#FFFFFF"/>
+  <circle cx="31" cy="29" r="3.5" fill="#006C9B"/>
+</svg>

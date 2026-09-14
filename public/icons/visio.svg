@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Back diagram sheet -->
+  <rect x="18" y="6" width="40" height="52" rx="6" fill="#185ABD"/>
+  <!-- Diagram blocks and connector -->
+  <rect x="28" y="14" width="20" height="12" rx="3" fill="#FFFFFF" fill-opacity="0.35"/>
+  <rect x="28" y="38" width="20" height="12" rx="3" fill="#FFFFFF" fill-opacity="0.35"/>
+  <path d="M38 26V38" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+  <!-- Foreground Visio 'V' tile -->
+  <rect x="6" y="14" width="36" height="36" rx="7" fill="#103F91"/>
+  <path d="M14 22H19.5L24 35L28.5 22H34L26.5 42H21.5L14 22Z" fill="#FFFFFF"/>
+</svg>
