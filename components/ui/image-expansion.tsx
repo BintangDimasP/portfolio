@@ -413,169 +413,180 @@ export function ImageExpansionSlider({
           className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md overflow-hidden flex items-center justify-center p-4 sm:p-6"
           onClick={() => setSelectedImageIndex(null)}
         >
-          {/* Modal Card with internal scroll strictly inside the card */}
           <div
-            className="relative w-full max-w-3xl max-h-[88vh] bg-[#0e0e11] border border-neutral-800 rounded-2xl shadow-2xl overflow-y-auto flex flex-col text-white animate-in fade-in zoom-in-95 duration-200"
-            style={{ scrollbarWidth: "thin" }}
+            className="relative w-full max-w-5xl h-[88vh] md:h-[620px] bg-[#0b0b0f] border border-neutral-800/90 rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col-reverse md:flex-row text-white animate-in fade-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Sticky Close Button pinned at top-right of card */}
-            <div className="sticky top-0 z-30 w-full flex justify-end p-3.5 pointer-events-none -mb-14">
-              <button
-                type="button"
-                className="pointer-events-auto w-8 h-8 rounded-full bg-black/75 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xs transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
-                onClick={() => setSelectedImageIndex(null)}
-                aria-label="Close modal"
-              >
-                ✕
-              </button>
-            </div>
+            {/* Close Button pinned at top-right of modal */}
+            <button
+              type="button"
+              className="absolute top-3.5 right-3.5 z-40 w-8 h-8 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xs transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
+              onClick={() => setSelectedImageIndex(null)}
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
 
-            {/* Image Preview Banner */}
-            <div className="relative w-full aspect-[16/9] max-h-[44vh] shrink-0 bg-black overflow-hidden group/modalimg">
-              <img
-                key={currentModalImageIdx}
-                src={modalImages[currentModalImageIdx] || selectedProject.image}
-                alt={`${selectedProject.title} - Preview ${currentModalImageIdx + 1}`}
-                className="w-full h-full object-cover transition-opacity duration-300 animate-in fade-in"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0e0e11] via-transparent to-black/30 pointer-events-none" />
-
-              {/* Quick Image Arrows on Banner (if multiple images) */}
-              {totalModalImages > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCurrentModalImageIdx((prev) =>
-                        prev > 0 ? prev - 1 : totalModalImages - 1
-                      )
-                    }
-                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 flex items-center justify-center text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
-                    aria-label="Previous photo"
-                  >
-                    ‹
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setCurrentModalImageIdx((prev) =>
-                        prev < totalModalImages - 1 ? prev + 1 : 0
-                      )
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 text-white border border-white/20 flex items-center justify-center text-sm font-bold transition-all hover:scale-105 active:scale-95 shadow-md cursor-pointer"
-                    aria-label="Next photo"
-                  >
-                    ›
-                  </button>
-
-                  {/* Thumbnail Dots on Banner */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-white/15">
-                    {modalImages.map((_, imgIdx) => (
-                      <button
-                        key={imgIdx}
-                        type="button"
-                        onClick={() => setCurrentModalImageIdx(imgIdx)}
-                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                          currentModalImageIdx === imgIdx
-                            ? "w-5 bg-white"
-                            : "w-1.5 bg-white/40 hover:bg-white/75"
-                        }`}
-                        aria-label={`View photo ${imgIdx + 1}`}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Content Details: Judul -> Company/MataKuliah -> Description -> Modul */}
-            <div className="p-6 md:p-8 flex flex-col gap-6">
-              {/* 1. JUDUL & 2. COMPANY / MATAKULIAH */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start justify-between gap-4">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-white leading-tight tracking-tight">
+            {/* LEFT SIDE: Project Details (Title, Client, Description, Modul if present, Tech Stack) */}
+            <div
+              className="w-full md:w-[42%] lg:w-[38%] h-full flex flex-col justify-between p-6 sm:p-7 md:p-8 overflow-y-auto bg-[#0c0c10] border-t md:border-t-0 md:border-r border-neutral-800/80 gap-6"
+              style={{ scrollbarWidth: "thin" }}
+            >
+              <div className="flex flex-col gap-5">
+                {/* Header (Title & Client/Instansi) */}
+                <div className="flex flex-col gap-1.5">
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
                     {selectedProject.title}
                   </h3>
-                  
-                </div>
 
-                {/* Company / Mata Kuliah */}
-                {selectedProject.company && (
-                  <div className="flex items-center gap-2 text-xs md:text-sm text-neutral-400">
-                    
-                    <span className="text-neutral-200 font-semibold">
+                  {selectedProject.company && (
+                    <p className="text-xs sm:text-sm text-neutral-400 font-medium">
                       {selectedProject.company}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Divider Line */}
-              <div className="w-full h-px bg-neutral-800/80" />
-
-              {/* 3. Description Section */}
-              <div className="flex flex-col gap-2.5">
-                <h4 className="text-xs md:text-[13px] font-extrabold uppercase tracking-wider text-white">
-                  Description
-                </h4>
-                <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed text-justify">
-                  {selectedProject.description || "Deskripsi proyek belum ditambahkan."}
-                </p>
-              </div>
-
-              {/* Divider Line after Description */}
-              <div className="w-full h-px bg-neutral-800/80" />
-
-              {/* 4. MODUL & TECH & TOOLS (Berdampingan dengan divider di tengah) */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-neutral-800/80">
-                {/* Modul Section */}
-                <div className="flex flex-col gap-2.5 md:pr-8">
-                  <h4 className="text-xs md:text-[13px] font-extrabold uppercase tracking-wider text-white">
-                    Modul
-                  </h4>
-                  {selectedProject.modules && selectedProject.modules.length > 0 ? (
-                    <ul className="flex flex-col gap-2">
-                      {selectedProject.modules.map((mod, mIdx) => (
-                        <li
-                          key={mIdx}
-                          className="text-xs sm:text-sm text-neutral-200 flex items-start gap-2.5 leading-snug"
-                        >
-                          <span className="text-neutral-400 font-bold select-none mt-0.5">•</span>
-                          <span>{mod}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className="text-xs text-neutral-500 italic">
-                      Modul proyek belum didaftarkan.
                     </p>
                   )}
                 </div>
 
-                {/* Tech & Tools Section (Rounded Shape) */}
-                <div className="flex flex-col gap-2.5 pt-6 md:pt-0 md:pl-8">
-                  <h4 className="text-xs md:text-[13px] font-extrabold uppercase tracking-wider text-white">
-                    Tech & Tools
+                {/* Divider */}
+                <div className="w-full h-px bg-neutral-800/80" />
+
+                {/* Description Section */}
+                <div className="flex flex-col gap-2">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-400">
+                    Description
+                  </h4>
+                  <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed text-justify">
+                    {selectedProject.description || "Deskripsi proyek belum ditambahkan."}
+                  </p>
+                </div>
+
+                {/* Modul Section (rendered only if modules exist) */}
+                {selectedProject.modules && selectedProject.modules.length > 0 && (
+                  <>
+                    <div className="w-full h-px bg-neutral-800/80" />
+                    <div className="flex flex-col gap-2.5">
+                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-400">
+                        Modul &amp; Fitur Utama
+                      </h4>
+                      <ul className="flex flex-col gap-2">
+                        {selectedProject.modules.map((mod, mIdx) => (
+                          <li
+                            key={mIdx}
+                            className="text-xs sm:text-sm text-neutral-200 flex items-start gap-2.5 leading-snug"
+                          >
+                            <span className="text-neutral-500 font-bold select-none">•</span>
+                            <span>{mod}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+
+                {/* Divider */}
+                <div className="w-full h-px bg-neutral-800/80" />
+
+                {/* Tech Stack & Tools Section */}
+                <div className="flex flex-col gap-2.5">
+                  <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-400">
+                    Tech Stack &amp; Tools
                   </h4>
                   {selectedProject.techStack && selectedProject.techStack.length > 0 ? (
                     <div className="flex flex-wrap gap-2 pt-0.5">
-                      {selectedProject.techStack.map((tech, tIdx) => (
+                      {selectedProject.techStack.map((tool, tIdx) => (
                         <span
                           key={tIdx}
-                          className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-900/90 border border-neutral-700/80 text-neutral-200 shadow-sm hover:border-neutral-500 hover:text-white transition-all select-none"
+                          className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-neutral-900 border border-neutral-700/80 text-neutral-200 shadow-sm select-none"
                         >
-                          {tech}
+                          {tool}
                         </span>
                       ))}
                     </div>
                   ) : (
                     <p className="text-xs text-neutral-500 italic">
-                      Tech & tools belum didaftarkan.
+                      Tools belum didaftarkan.
                     </p>
                   )}
                 </div>
               </div>
+
+              {/* Optional External Link Button */}
+              {selectedProject.url && (
+                <a
+                  href={selectedProject.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center w-full py-2.5 px-4 rounded-xl bg-white text-black font-bold text-xs hover:bg-neutral-200 transition-all shadow-md mt-4"
+                >
+                  Buka Tautan Proyek
+                </a>
+              )}
+            </div>
+
+            {/* RIGHT SIDE: Visual Showcase (Full fit content, click image for full res) */}
+            <div className="w-full md:w-[58%] lg:w-[62%] h-full flex flex-col justify-between bg-[#040406] relative p-4 sm:p-6 overflow-hidden">
+              {/* Main Image Stage (fits container naturally, no zoom in, click to view original) */}
+              <div className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center overflow-hidden">
+                <img
+                  key={currentModalImageIdx}
+                  src={modalImages[currentModalImageIdx] || selectedProject.image}
+                  alt={`${selectedProject.title} - Slide ${currentModalImageIdx + 1}`}
+                  onClick={() => {
+                    const activeSrc = modalImages[currentModalImageIdx] || selectedProject.image;
+                    if (activeSrc) window.open(activeSrc, "_blank");
+                  }}
+                  title="Klik untuk melihat gambar asli"
+                  className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl drop-shadow-2xl select-none cursor-pointer transition-opacity hover:opacity-90"
+                />
+
+                {/* Nav Arrows (if multiple images) */}
+                {totalModalImages > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentModalImageIdx((prev) =>
+                          prev > 0 ? prev - 1 : totalModalImages - 1
+                        )
+                      }
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 flex items-center justify-center text-base font-bold transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer backdrop-blur-md"
+                      aria-label="Previous slide"
+                    >
+                      ‹
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCurrentModalImageIdx((prev) =>
+                          prev < totalModalImages - 1 ? prev + 1 : 0
+                        )
+                      }
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 z-30 w-9 h-9 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 flex items-center justify-center text-base font-bold transition-all hover:scale-110 active:scale-95 shadow-xl cursor-pointer backdrop-blur-md"
+                      aria-label="Next slide"
+                    >
+                      ›
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Bottom Dots Indicator (if multiple images) */}
+              {totalModalImages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-3 shrink-0 z-20">
+                  {modalImages.map((_, imgIdx) => (
+                    <button
+                      key={imgIdx}
+                      type="button"
+                      onClick={() => setCurrentModalImageIdx(imgIdx)}
+                      className={`h-2 rounded-full transition-all duration-300 cursor-pointer ${
+                        currentModalImageIdx === imgIdx
+                          ? "w-6 bg-white"
+                          : "w-2 bg-neutral-600 hover:bg-neutral-400"
+                      }`}
+                      aria-label={`Slide ${imgIdx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>,

@@ -10,8 +10,8 @@ export default function Contact() {
     email: "",
     subject: "",
     message: "",
-    agree: false,
   });
+  const [honeypot, setHoneypot] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -30,6 +30,7 @@ export default function Contact() {
         : formData.subject || "Pesan Baru"
     );
     fd.append("message", formData.message);
+    fd.append("company_website_verify", honeypot);
 
     try {
       const res = await submitContactMessage(fd);
@@ -39,7 +40,8 @@ export default function Contact() {
         setIsSubmitted(true);
         setTimeout(() => {
           setIsSubmitted(false);
-          setFormData({ name: "", phone: "", email: "", subject: "", message: "", agree: false });
+          setFormData({ name: "", phone: "", email: "", subject: "", message: "" });
+          setHoneypot("");
         }, 5000);
       }
     } catch (err) {
@@ -127,6 +129,24 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-11 w-full">
+                {/* Honeypot field (anti-bot trap: hidden completely from humans) */}
+                <div
+                  className="opacity-0 absolute -z-50 pointer-events-none select-none h-0 w-0 overflow-hidden"
+                  aria-hidden="true"
+                  tabIndex={-1}
+                >
+                  <label htmlFor="company_website_verify">Do not fill this field</label>
+                  <input
+                    id="company_website_verify"
+                    name="company_website_verify"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                  />
+                </div>
+
                 {/* Row 1: Name/Company & Phone */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                   <div>
@@ -134,6 +154,7 @@ export default function Contact() {
                       id="name"
                       type="text"
                       required
+                      maxLength={100}
                       placeholder="Name / Company"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -145,6 +166,7 @@ export default function Contact() {
                     <input
                       id="phone"
                       type="tel"
+                      maxLength={30}
                       placeholder="Phone"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -159,6 +181,7 @@ export default function Contact() {
                     id="email"
                     type="email"
                     required
+                    maxLength={120}
                     placeholder="Email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -171,6 +194,7 @@ export default function Contact() {
                   <input
                     id="subject"
                     type="text"
+                    maxLength={200}
                     placeholder="Subject"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
@@ -183,6 +207,7 @@ export default function Contact() {
                   <textarea
                     id="message"
                     required
+                    maxLength={3000}
                     rows={1}
                     placeholder="Type your message..."
                     value={formData.message}
@@ -191,30 +216,7 @@ export default function Contact() {
                   />
                 </div>
 
-                {/* Row 5: Privacy statement agreement */}
-                <label className="flex items-center gap-3.5 cursor-pointer select-none text-neutral-400 text-[13.5px] sm:text-[14px]">
-                  <input
-                    type="checkbox"
-                    checked={formData.agree}
-                    onChange={(e) => setFormData({ ...formData, agree: e.target.checked })}
-                    className="hidden"
-                  />
-                  <span
-                    className={`w-4 h-4 rounded-full border transition-all flex items-center justify-center flex-shrink-0 ${
-                      formData.agree ? "border-white bg-white" : "border-neutral-600 bg-transparent"
-                    }`}
-                  >
-                    {formData.agree && <span className="w-1.5 h-1.5 rounded-full bg-black" />}
-                  </span>
-                  <span>
-                    I have read and understood the{" "}
-                    <span className="underline text-neutral-300 hover:text-white transition-colors">
-                      privacy statement
-                    </span>
-                  </span>
-                </label>
-
-                {/* Row 6: Submit Button (Rounded pill white button) */}
+                {/* Submit Button (Rounded pill white button) */}
                 <div className="pt-2">
                   <button
                     type="submit"

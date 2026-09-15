@@ -1,0 +1,34 @@
+{
+  "greeting": "Hello, I'm",
+  "name": "Bintang Dimas",
+  "tagline": "Web Developer • UI/UX Designer • Graphic Designer • System Analyst",
+  "avatar_url": "/me.jpg",
+  "about_text": "Information Systems graduate from Telkom University with a strong interest in information technology. Experienced in system design and development, UI/UX design, business process modeling, web development, and graphic design, gained through freelance work, volunteering, internships, and university projects. Proficient in Figma, Visio, Bizagi, VS Code, and Laragon, and adept at leveraging AI tools to optimize workflow efficiency. A disciplined professional with excellent time management skills, committed to continuous growth within the IT industry.",
+  "github_url": "https://github.com/BintangDimasP",
+  "linkedin_url": "https://www.linkedin.com/in/bintangdimasp/",
+  "cv_url": "https://jttnocrlcephjrdpkwyl.supabase.co/storage/v1/object/public/project-images/profile/cv-1789442503620.pdf",
+  "education_school": "Telkom University Surabaya",
+  "education_degree": "Bachelor Degree of Information System",
+  "education_gpa": "3.61 / 4.00",
+  "education_period": "2022 - 2026",
+  "hard_skills": [
+    "Fullstack Developer",
+    "Graphic Design",
+    "UI/UX Design",
+    "Web Development",
+    "Data Entry",
+    "IT System Analyst",
+    "IT Support",
+    "IT Business Analyst",
+    "Front End Developer",
+    "Microsoft Excel"
+  ],
+  "soft_skills": [
+    "Problem Solving",
+    "Teamwork & Collaboration",
+    "Time Management",
+    "Critical Thinking",
+    "Communication",
+    "Adaptability"
+  ]
+}

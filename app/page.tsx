@@ -10,7 +10,7 @@ import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 import ScrollBlurSection from "@/components/ScrollBlurSection";
 import { ArrowRight } from "lucide-react";
-import { getProjects, getExperiences } from "@/app/admin/actions";
+import { getProjects, getExperiences, getProfile, getTechTools } from "@/app/admin/actions";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -19,10 +19,15 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Home() {
-  const [projects, experiences] = await Promise.all([
+  const [projects, experiences, profile, techTools] = await Promise.all([
     getProjects(),
     getExperiences(),
+    getProfile(),
+    getTechTools(),
   ]);
   return (
     <div className="w-full">
@@ -51,13 +56,13 @@ export default async function Home() {
 
         <div className="relative z-10 flex flex-col items-center">
           <h2 className="text-[20px] md:text-[30px] font-bold leading-none mb-3 text-white">
-            Hello, I&apos;m
+            {profile.greeting || "Hello, I'm"}
           </h2>
           <h1 className="text-[50px] md:text-[80px] font-bold leading-none mb-6 text-white tracking-tight">
-            Bintang Dimas
+            {profile.name || "Bintang Dimas"}
           </h1>
           <p className="text-[12px] md:text-[20px] font-normal text-neutral-300 mb-8 md:mb-10">
-            Web Developer &nbsp;•&nbsp; UI/UX Designer &nbsp;•&nbsp; Graphic Designer &nbsp;•&nbsp; System Analyst
+            {profile.tagline || "Web Developer • UI/UX Designer • Graphic Designer • System Analyst"}
           </p>
 
           {/* Button: Get to Know me */}
@@ -99,8 +104,8 @@ export default async function Home() {
             
             <div className="shrink-0 flex items-center justify-center">
               <TiltedCard
-                imageSrc="/me.jpg"
-                altText="Bintang Dimas"
+                imageSrc={profile.avatar_url || "/me.jpg"}
+                altText={profile.name || "Bintang Dimas"}
                 containerHeight="320px"
                 containerWidth="280px"
                 imageHeight="320px"
@@ -115,48 +120,47 @@ export default async function Home() {
               />
             </div>
             <div className="flex-1 text-left">
-              <p className="text-[15px] md:text-[17px] font-normal leading-relaxed text-justify mb-6 text-neutral-700">
-                Information Systems graduate from Telkom University with a strong interest in information technology. 
-                Experienced in system design and development, UI/UX design, business process modeling, web development, 
-                and graphic design, gained through freelance work, volunteering, internships, and university projects. 
-                Proficient in Figma, Visio, Bizagi, VS Code, and Laragon, and adept at leveraging AI tools to optimize 
-                workflow efficiency. A disciplined professional with excellent time management skills, committed to 
-                continuous growth within the IT industry.
+              <p className="text-[15px] md:text-[17px] font-normal leading-relaxed text-justify mb-6 text-neutral-700 whitespace-pre-line">
+                {profile.about_text}
               </p>
 
               
               <div className="flex items-center justify-center md:justify-start gap-3 mb-5">
-                <a
-                  href="https://github.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-md hover:bg-neutral-800 hover:scale-110 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 transition-all duration-300 ease-out cursor-pointer"
-                  title="GitHub"
-                  aria-label="GitHub Profile"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
-                  </svg>
-                </a>
+                {profile.github_url && (
+                  <a
+                    href={profile.github_url.startsWith("http") ? profile.github_url : `https://${profile.github_url.replace(/^\/+/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-md hover:bg-neutral-800 hover:scale-110 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 transition-all duration-300 ease-out cursor-pointer"
+                    title="GitHub"
+                    aria-label="GitHub Profile"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                    </svg>
+                  </a>
+                )}
 
-                <a
-                  href="https://linkedin.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-md hover:bg-neutral-800 hover:scale-110 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 transition-all duration-300 ease-out cursor-pointer"
-                  title="LinkedIn"
-                  aria-label="LinkedIn Profile"
-                >
-                  <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
-                    <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                  </svg>
-                </a>
+                {profile.linkedin_url && (
+                  <a
+                    href={profile.linkedin_url.startsWith("http") ? profile.linkedin_url : `https://${profile.linkedin_url.replace(/^\/+/, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-11 h-11 rounded-full bg-black text-white flex items-center justify-center shadow-md hover:bg-neutral-800 hover:scale-110 hover:-translate-y-0.5 hover:shadow-xl active:scale-95 transition-all duration-300 ease-out cursor-pointer"
+                    title="LinkedIn"
+                    aria-label="LinkedIn Profile"
+                  >
+                    <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                  </a>
+                )}
               </div>
 
               
               <div className="flex justify-center md:justify-start">
                 <a 
-                  href="/cv.pdf" 
+                  href={profile.cv_url || "/cv.pdf"} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-block"
@@ -196,26 +200,35 @@ export default async function Home() {
                 <h2 className="text-[25px] text-center md:text-center font-bold mb-4 text-black">Education & Skills</h2>
                 <div className="w-full flex flex-col gap-3.5 p-6 sm:p-7 rounded-2xl bg-neutral-50 border border-neutral-200/80 shadow-md hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 hover:border-neutral-300 transition-all duration-300 ease-out cursor-default">
                   <div className="flex items-center justify-between gap-3">
-                    <h3 className="font-bold text-[18px] sm:text-[20px] text-black">Telkom University Surabaya</h3>
+                    <h3 className="font-bold text-[18px] sm:text-[20px] text-black">
+                      {profile.education_school || "Telkom University Surabaya"}
+                    </h3>
                     <span className="shrink-0 text-[11px] font-extrabold px-3 py-1 rounded-full bg-black text-white uppercase tracking-wider shadow-sm">
-                      Graduated 2026
+                      {profile.education_period || "2020 - 2024"}
                     </span>
                   </div>
-                  <p className="text-[16px] sm:text-[17px] font-normal text-neutral-700">Bachelor Degree of Information System</p>
-                  <p className="text-[16px] sm:text-[17px] font-normal text-neutral-700">GPA : 3.61/4.00</p>
+                  <p className="text-[16px] sm:text-[17px] font-normal text-neutral-700">
+                    {profile.education_degree || "Bachelor Degree of Information System"}
+                  </p>
+                  <p className="text-[16px] sm:text-[17px] font-normal text-neutral-700">
+                    GPA : {profile.education_gpa || "3.89 / 4.00"}
+                  </p>
                   
                   <div className="mt-1">
                     <h4 className="font-semibold text-[15px] sm:text-[16px] text-neutral-900 mb-2">Hard Skills</h4>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        "Fullstack Developer",
-                        "Graphic Design",
-                        "UI/UX Design",
-                        "Web Development",
-                        "Data Entry",
-                        "IT System Analyst",
-                        "IT Support",
-                      ].map((skill) => (
+                      {(profile.hard_skills && profile.hard_skills.length > 0
+                        ? profile.hard_skills
+                        : [
+                            "Fullstack Developer",
+                            "Graphic Design",
+                            "UI/UX Design",
+                            "Web Development",
+                            "Data Entry",
+                            "IT System Analyst",
+                            "IT Support",
+                          ]
+                      ).map((skill) => (
                         <span
                           key={skill}
                           className="text-[12.5px] sm:text-[13px] font-medium px-3 py-1 rounded-full bg-white border border-neutral-200 text-neutral-800 shadow-sm hover:scale-105 hover:bg-neutral-900 hover:text-white hover:border-black hover:shadow-md transition-all duration-200 ease-out cursor-pointer select-none"
@@ -228,14 +241,17 @@ export default async function Home() {
                   <div className="mt-1">
                     <h4 className="font-semibold text-[15px] sm:text-[16px] text-neutral-900 mb-2">Soft Skills</h4>
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        "Problem Solving",
-                        "Teamwork & Collaboration",
-                        "Time Management",
-                        "Critical Thinking",
-                        "Communication",
-                        "Adaptability",
-                      ].map((skill) => (
+                      {(profile.soft_skills && profile.soft_skills.length > 0
+                        ? profile.soft_skills
+                        : [
+                            "Problem Solving",
+                            "Teamwork & Collaboration",
+                            "Time Management",
+                            "Critical Thinking",
+                            "Communication",
+                            "Adaptability",
+                          ]
+                      ).map((skill) => (
                         <span
                           key={skill}
                           className="text-[12.5px] sm:text-[13px] font-medium px-3 py-1 rounded-full bg-white border border-neutral-200 text-neutral-800 shadow-sm hover:scale-105 hover:bg-neutral-900 hover:text-white hover:border-black hover:shadow-md transition-all duration-200 ease-out cursor-pointer select-none"
@@ -250,7 +266,7 @@ export default async function Home() {
             </div>
             <div>
               <h2 className="text-[25px] text-center md:text-center font-bold mb-4 text-black">Tech & Tools</h2>
-              <TechTools />
+              <TechTools initialTools={techTools} />
             </div>
           </div>
         </div>

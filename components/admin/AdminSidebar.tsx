@@ -12,6 +12,7 @@ import {
   Mail,
   ExternalLink,
   LogOut,
+  UserCircle,
 } from "lucide-react";
 
 interface NavItem {
@@ -23,6 +24,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/profile", label: "Profil & Tools", icon: UserCircle },
   { href: "/admin/projects", label: "Proyek", icon: FolderKanban },
   { href: "/admin/experience", label: "Pengalaman Kerja", icon: Briefcase },
   { href: "/admin/messages", label: "Pesan Masuk", icon: Mail },
@@ -59,14 +61,12 @@ export default function AdminSidebar() {
         ].join(" ")}
       >
         {/* Icon mark */}
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-500 text-white shadow-sm">
-          <span className="text-sm font-black leading-none">BD</span>
-        </div>
+        
         {/* Text logo — only when expanded */}
         {sidebarExpanded && (
           <div className="flex min-w-0 flex-col">
-            <span className="text-sm font-bold text-gray-900 leading-none">Bintang Dimas</span>
-            <span className="text-[11px] text-gray-400 mt-0.5">CMS Panel</span>
+            <span className="text-sm font-bold text-gray-900 leading-none">ADMIN PANEL</span>
+            
           </div>
         )}
       </div>

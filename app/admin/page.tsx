@@ -2,7 +2,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
-import { getProjects, getExperiences, getContactMessages } from "@/app/admin/actions";
+import { getProjects, getExperiences, getContactMessages, getTechTools } from "@/app/admin/actions";
 import {
   FolderKanban,
   Briefcase,
@@ -10,16 +10,19 @@ import {
   Plus,
   ArrowUpRight,
   TrendingUp,
+  Sparkles,
+  UserCircle,
 } from "lucide-react";
 
 export default async function AdminDashboardPage() {
   const isAuth = await isAdminAuthenticated();
   if (!isAuth) redirect("/admin/login");
 
-  const [projects, experiences, messages] = await Promise.all([
+  const [projects, experiences, messages, techTools] = await Promise.all([
     getProjects(),
     getExperiences(),
     getContactMessages(),
+    getTechTools(),
   ]);
 
   const unreadCount = messages.filter((m: any) => !m.is_read).length;
@@ -30,32 +33,29 @@ export default async function AdminDashboardPage() {
       value: projects.length,
       icon: FolderKanban,
       href: "/admin/projects",
-      badge: `${projects.length > 0 ? "+" + projects.length : "0"} karya`,
-      badgeColor: "success" as const,
+      
+      
     },
     {
       label: "Pengalaman Kerja",
       value: experiences.length,
       icon: Briefcase,
       href: "/admin/experience",
-      badge: `${experiences.length} riwayat`,
-      badgeColor: "primary" as const,
     },
     {
       label: "Pesan Masuk",
       value: messages.length,
       icon: Mail,
       href: "/admin/messages",
-      badge: unreadCount > 0 ? `${unreadCount} baru` : "Semua dibaca",
-      badgeColor: unreadCount > 0 ? ("warning" as const) : ("success" as const),
+      
+      
     },
     {
-      label: "Koneksi Supabase",
-      value: "Live",
-      icon: TrendingUp,
-      href: "#",
-      badge: "Connected",
-      badgeColor: "success" as const,
+      label: "Tech & Tools",
+      value: techTools.length,
+      icon: Sparkles,
+      href: "/admin/profile",
+      
     },
   ];
 
@@ -71,24 +71,24 @@ export default async function AdminDashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Kelola konten portfolio, proyek, pengalaman, dan pesan masuk.
-          </p>
+          
         </div>
-        <Link
-          href="/admin/projects"
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors shadow-theme-xs"
-        >
-          <Plus className="h-4 w-4" />
-          Tambah Proyek
-        </Link>
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/admin/profile"
+            className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-theme-xs"
+          >
+            <UserCircle className="h-4 w-4 text-gray-500" />
+            Edit Profil &amp; Tools
+          </Link>
+          
+        </div>
       </div>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
         {metrics.map((metric) => {
           const Icon = metric.icon;
-          const badgeCls = badgeClasses[metric.badgeColor] ?? badgeClasses.primary;
           return (
             <Link
               key={metric.label}
@@ -107,13 +107,7 @@ export default async function AdminDashboardPage() {
                     {metric.value}
                   </h4>
                 </div>
-                {/* Badge */}
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badgeCls}`}
-                >
-                  <ArrowUpRight className="h-3 w-3" />
-                  {metric.badge}
-                </span>
+                
               </div>
             </Link>
           );

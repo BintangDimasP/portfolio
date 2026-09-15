@@ -2,8 +2,9 @@
 
 import React from "react";
 import GlassIcons, { type GlassIconsItem } from "@/components/GlassIcons";
+import { type TechToolItem } from "@/app/admin/actions";
 
-export const techItems: GlassIconsItem[] = [
+export const defaultTechItems: GlassIconsItem[] = [
   // Baris 1: HTML, CSS, JS, TypeScript
   {
     icon: <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" alt="HTML5" className="w-full h-full object-contain" />,
@@ -115,10 +116,38 @@ export const techItems: GlassIconsItem[] = [
   }
 ];
 
-export default function TechTools({ className }: { className?: string }) {
+interface TechToolsProps {
+  initialTools?: TechToolItem[];
+  className?: string;
+}
+
+export default function TechTools({ initialTools, className }: TechToolsProps) {
+  const items: GlassIconsItem[] =
+    initialTools && initialTools.length > 0
+      ? initialTools.map((t) => ({
+          label: t.label,
+          color: t.color,
+          icon: (
+            <img
+              src={t.icon_url}
+              alt={t.label}
+              className="w-full h-full object-contain"
+            />
+          ),
+        }))
+      : defaultTechItems;
+
   return (
-    <div className={`flex items-center justify-center text-[10px] min-[360px]:text-[11px] min-[400px]:text-[12.5px] sm:text-[14px] md:text-[16px] lg:text-[17px] ${className || ""}`}>
-      <GlassIcons items={techItems} showLabel={false} className="w-full justify-items-center gap-2 sm:gap-3.5 md:gap-4" />
+    <div
+      className={`flex items-center justify-center text-[10px] min-[360px]:text-[11px] min-[400px]:text-[12.5px] sm:text-[14px] md:text-[16px] lg:text-[17px] ${
+        className || ""
+      }`}
+    >
+      <GlassIcons
+        items={items}
+        showLabel={false}
+        className="w-full justify-items-center gap-2 sm:gap-3.5 md:gap-4"
+      />
     </div>
   );
 }

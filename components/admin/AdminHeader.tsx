@@ -18,6 +18,8 @@ import {
   FolderKanban,
   Briefcase,
   Mail,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react";
 
 const pageTitles: Record<string, string> = {
@@ -25,6 +27,7 @@ const pageTitles: Record<string, string> = {
   "/admin/projects": "Manajemen Proyek",
   "/admin/experience": "Pengalaman Kerja",
   "/admin/messages": "Inbox Pesan",
+  "/admin/profile": "Profil & Keahlian",
 };
 
 export default function AdminHeader() {
@@ -76,17 +79,7 @@ export default function AdminHeader() {
       </div>
 
       {/* Center: Search bar (desktop) */}
-      <div className="hidden md:flex flex-1 max-w-sm mx-6">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Cari proyek, pesan..."
-            readOnly
-            className="h-9 w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pl-9 pr-3 text-sm text-gray-600 placeholder:text-gray-400 cursor-pointer hover:border-gray-300 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 transition-all"
-          />
-        </div>
-      </div>
+      
 
       {/* Right: Notification + User */}
       <div className="flex items-center gap-2">
@@ -115,7 +108,16 @@ export default function AdminHeader() {
             <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-gray-200 bg-white shadow-theme-lg py-2 z-50">
               {/* User info */}
               <div className="px-4 py-2 border-b border-gray-100">
-                <p className="text-sm font-semibold text-gray-800">Bintang Dimas P.</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-gray-800">Bintang Dimas P.</p>
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 border border-emerald-200"
+                    title="Perangkat ini diizinkan mengakses panel admin"
+                  >
+                    <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                    Trusted
+                  </span>
+                </div>
                 <p className="text-xs text-gray-500">Administrator</p>
               </div>
 
@@ -151,6 +153,19 @@ export default function AdminHeader() {
                   <ExternalLink className="h-4 w-4 text-gray-400" />
                   Lihat Website
                 </Link>
+                <a
+                  href="/admin/deactivate"
+                  onClick={(e) => {
+                    if (!confirm("Yakin ingin mencabut akses perangkat ini? Halaman admin akan kembali tersembunyi (404) sampai Anda membuka tautan aktivasi lagi.")) {
+                      e.preventDefault();
+                    }
+                  }}
+                  className="flex items-center gap-3 px-4 py-2 text-xs text-amber-600 hover:bg-amber-50 transition-colors"
+                  title="Kunci kembali admin dari perangkat ini"
+                >
+                  <ShieldOff className="h-3.5 w-3.5 text-amber-500" />
+                  Kunci Perangkat Ini
+                </a>
                 <form action={handleLogout}>
                   <button
                     type="submit"

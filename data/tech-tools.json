@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "label": "HTML5",
+    "category": "Frontend",
+    "color": "#c84318",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg",
+    "display_order": 1
+  },
+  {
+    "id": 2,
+    "label": "CSS3",
+    "category": "Frontend",
+    "color": "#12619d",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg",
+    "display_order": 2
+  },
+  {
+    "id": 3,
+    "label": "JavaScript",
+    "category": "Frontend",
+    "color": "#b8860b",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg",
+    "display_order": 3
+  },
+  {
+    "id": 4,
+    "label": "TypeScript",
+    "category": "Frontend",
+    "color": "#1c5285",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+    "display_order": 4
+  },
+  {
+    "id": 5,
+    "label": "Next.js",
+    "category": "Frontend",
+    "color": "#171717",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+    "display_order": 5
+  },
+  {
+    "id": 6,
+    "label": "React",
+    "category": "Frontend",
+    "color": "#087ea4",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+    "display_order": 6
+  },
+  {
+    "id": 7,
+    "label": "Tailwind",
+    "category": "Frontend",
+    "color": "#0369a1",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/tailwindcss/tailwindcss-original.svg",
+    "display_order": 7
+  },
+  {
+    "id": 8,
+    "label": "React Native",
+    "category": "Mobile",
+    "color": "#1e5689",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+    "display_order": 8
+  },
+  {
+    "id": 9,
+    "label": "Python",
+    "category": "Backend",
+    "color": "#244f77",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+    "display_order": 9
+  },
+  {
+    "id": 10,
+    "label": "PHP",
+    "category": "Backend",
+    "color": "#4d547f",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/php/php-original.svg",
+    "display_order": 10
+  },
+  {
+    "id": 11,
+    "label": "Laravel",
+    "category": "Backend",
+    "color": "#c51717",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/laravel/laravel-original.svg",
+    "display_order": 11
+  },
+  {
+    "id": 12,
+    "label": "MySQL",
+    "category": "Database",
+    "color": "#00576e",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mysql/mysql-original.svg",
+    "display_order": 12
+  },
+  {
+    "id": 13,
+    "label": "VS Code",
+    "category": "Tools",
+    "color": "#005a9e",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vscode/vscode-original.svg",
+    "display_order": 13
+  },
+  {
+    "id": 14,
+    "label": "Git",
+    "category": "Tools",
+    "color": "#bf371d",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+    "display_order": 14
+  },
+  {
+    "id": 15,
+    "label": "Postman",
+    "category": "Tools",
+    "color": "#c84a1a",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/postman/postman-original.svg",
+    "display_order": 15
+  },
+  {
+    "id": 16,
+    "label": "Docker",
+    "category": "DevOps",
+    "color": "#116199",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+    "display_order": 16
+  },
+  {
+    "id": 17,
+    "label": "Jenkins",
+    "category": "DevOps",
+    "color": "#9b211d",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/jenkins/jenkins-original.svg",
+    "display_order": 17
+  },
+  {
+    "id": 18,
+    "label": "Figma",
+    "category": "Design",
+    "color": "#6c2bd9",
+    "icon_url": "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/figma/figma-original.svg",
+    "display_order": 18
+  },
+  {
+    "id": 19,
+    "label": "Bizagi",
+    "category": "Design & Modeling",
+    "color": "#006d96",
+    "icon_url": "/icons/bizagi.svg",
+    "display_order": 19
+  },
+  {
+    "id": 20,
+    "label": "Visio",
+    "category": "Design & Modeling",
+    "color": "#23386d",
+    "icon_url": "/icons/visio.svg",
+    "display_order": 20
+  }
+]

@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveProject } from "@/app/admin/actions";
-import { X, Loader2, ChevronDown } from "lucide-react";
+import { X, Loader2, ChevronDown, Sparkles } from "lucide-react";
 import SkillTagInput from "@/components/admin/SkillTagInput";
 import ProjectImageManager from "@/components/admin/ProjectImageManager";
+import { isGraphicDesignCategory } from "@/lib/utils";
 
 interface ProjectModalProps {
   project?: any;
@@ -45,6 +46,9 @@ export default function ProjectModal({
     project?.category || DEFAULT_CATEGORIES[0]
   );
   const [customCategory, setCustomCategory] = useState<string>("");
+
+  const currentCategory = selectedCategory === "__CUSTOM__" ? customCategory.trim() : selectedCategory;
+  const isGraphic = isGraphicDesignCategory(currentCategory);
 
   useEffect(() => {
     if (isOpen) {
@@ -244,23 +248,40 @@ export default function ProjectModal({
               />
             </div>
 
-            {/* Modules (one per line) */}
-            <div>
-              <label className={labelCls}>Modul / Fitur Utama (1 baris per modul)</label>
-              <textarea
-                name="modules"
-                rows={3}
-                defaultValue={(project?.modules || []).join("\n")}
-                placeholder={"Modul Autentikasi Multi-Role\nModul Kalkulasi Otomatis\nLive Ranking Leaderboard"}
-                className="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all font-mono text-xs"
-              />
-            </div>
+            {/* Modules (one per line) - Conditionally hidden for Graphic Design */}
+            {isGraphic ? (
+              <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/80 p-4 flex items-start gap-3 text-xs text-amber-900">
+                <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex flex-col gap-1">
+                  <p className="font-semibold text-amber-950">Mode Portofolio Desain Grafis (Instagram Showcase)</p>
+                  <p className="text-amber-800/90 leading-relaxed">
+                    Kategori Graphic Design akan menampilkan galeri karya visual secara penuh (utuh tanpa terpotong) dengan navigasi multi-slide ala Instagram. Bagian modul teknis otomatis ditiadakan.
+                  </p>
+                </div>
+                <input type="hidden" name="modules" value="" />
+              </div>
+            ) : (
+              <div>
+                <label className={labelCls}>Modul / Fitur Utama (1 baris per modul)</label>
+                <textarea
+                  name="modules"
+                  rows={3}
+                  defaultValue={(project?.modules || []).join("\n")}
+                  placeholder={"Modul Autentikasi Multi-Role\nModul Kalkulasi Otomatis\nLive Ranking Leaderboard"}
+                  className="mt-1.5 w-full rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all font-mono text-xs"
+                />
+              </div>
+            )}
 
             {/* Tech Stack (Dropdown & Tag Selector like LinkedIn) */}
             <SkillTagInput
               name="tech_stack"
-              label="Tech Stack & Tools"
-              placeholder="Cari atau pilih tech stack (misal: Next.js, Figma, Tailwind CSS)..."
+              label={isGraphic ? "Design Tools & Software" : "Tech Stack & Tools"}
+              placeholder={
+                isGraphic
+                  ? "Cari atau pilih software desain (misal: Figma, Canva, Adobe Photoshop, Illustrator)..."
+                  : "Cari atau pilih tech stack (misal: Next.js, Figma, Tailwind CSS)..."
+              }
               initialSkills={project?.tech_stack || []}
             />
 

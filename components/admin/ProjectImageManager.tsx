@@ -27,6 +27,12 @@ export default function ProjectImageManager({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 20 * 1024 * 1024) {
+      setError("Ukuran file gambar melebihi batas maksimal 20 MB.");
+      if (addFileInputRef.current) addFileInputRef.current.value = "";
+      return;
+    }
+
     setIsAddingUpload(true);
     setError("");
     try {
@@ -48,6 +54,12 @@ export default function ProjectImageManager({
   const handleReplaceFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || replaceTargetIndex === null) return;
+
+    if (file.size > 20 * 1024 * 1024) {
+      setError("Ukuran file gambar melebihi batas maksimal 20 MB.");
+      if (replaceFileInputRef.current) replaceFileInputRef.current.value = "";
+      return;
+    }
 
     const idx = replaceTargetIndex;
     setUploadingIndex(idx);
