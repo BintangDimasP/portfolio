@@ -115,21 +115,21 @@ export default function WorkExperience({ initialExperiences }: { initialExperien
                   {/* SISI KIRI (Desktop) / Konten Utama */}
                   <div className="w-full md:w-[45%] pl-10 md:pl-0 flex flex-col">
                     {isCardLeft ? (
-                      /* Card di Sisi Kiri */
+                      /* Card di Sisi Kiri - tampil di mobile & desktop */
                       <ExperienceCard item={item} />
                     ) : (
-                      /* Tahun & Info di Sisi Kiri */
+                      /* Tahun & Info di Sisi Kiri - hanya desktop */
                       <YearBlock item={item} align="right" />
                     )}
                   </div>
 
-                  {/* SISI KANAN (Desktop) */}
-                  <div className="w-full md:w-[45%] pl-10 md:pl-0 mt-4 md:mt-0 flex flex-col">
+                  {/* SISI KANAN (Desktop) - di mobile, sembunyikan div ini jika hanya berisi YearBlock */}
+                  <div className={`w-full md:w-[45%] pl-10 md:pl-0 md:mt-0 flex flex-col ${isCardLeft ? "hidden md:flex" : ""}`}>
                     {isCardLeft ? (
-                      /* Tahun & Info di Sisi Kanan */
+                      /* Tahun & Info di Sisi Kanan - hanya desktop */
                       <YearBlock item={item} align="left" />
                     ) : (
-                      /* Card di Sisi Kanan */
+                      /* Card di Sisi Kanan - tampil di mobile & desktop */
                       <ExperienceCard item={item} />
                     )}
                   </div>

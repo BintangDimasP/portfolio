@@ -123,11 +123,13 @@ export function ImageExpansionSlider({
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [currentModalImageIdx, setCurrentModalImageIdx] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const sliderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
 
   const [visibleCards, setVisibleCards] = useState(3);
 
@@ -238,19 +240,6 @@ export function ImageExpansionSlider({
     }
   }, [maxIndex, currentIdx]);
 
-  // Lock body scroll and hide navbar when modal is open
-  useEffect(() => {
-    if (selectedImageIndex !== null) {
-      const originalOverflow = document.body.style.overflow;
-      document.body.style.overflow = "hidden";
-      document.body.classList.add("preview-modal-open");
-      return () => {
-        document.body.style.overflow = originalOverflow;
-        document.body.classList.remove("preview-modal-open");
-      };
-    }
-  }, [selectedImageIndex]);
-
   const selectedProject = selectedImageIndex !== null ? filteredSlides[selectedImageIndex] : null;
   const modalImages = selectedProject
     ? selectedProject.images && selectedProject.images.length > 0
@@ -259,27 +248,44 @@ export function ImageExpansionSlider({
     : [];
   const totalModalImages = modalImages.length;
 
-  // Keyboard navigation for modal (Esc to close, ArrowLeft/Right to switch photos of the project)
+  // Lock body scroll, hide mobile navbar, and handle keyboard navigation for modal & lightbox
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setSelectedImageIndex(null);
-      } else if (e.key === "ArrowLeft") {
-        setCurrentModalImageIdx((prev) =>
-          totalModalImages > 1 ? (prev > 0 ? prev - 1 : totalModalImages - 1) : 0
-        );
-      } else if (e.key === "ArrowRight") {
-        setCurrentModalImageIdx((prev) =>
-          totalModalImages > 1 ? (prev < totalModalImages - 1 ? prev + 1 : 0) : 0
-        );
-      }
-    };
-
     if (selectedImageIndex !== null) {
+      document.body.style.overflow = "hidden";
+      document.body.setAttribute("data-project-preview-open", "true");
+      document.body.classList.add("preview-modal-open");
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          if (isLightboxOpen) {
+            setIsLightboxOpen(false);
+          } else {
+            setSelectedImageIndex(null);
+          }
+        } else if (e.key === "ArrowLeft") {
+          setCurrentModalImageIdx((prev) =>
+            totalModalImages > 1 ? (prev > 0 ? prev - 1 : totalModalImages - 1) : 0
+          );
+        } else if (e.key === "ArrowRight") {
+          setCurrentModalImageIdx((prev) =>
+            totalModalImages > 1 ? (prev < totalModalImages - 1 ? prev + 1 : 0) : 0
+          );
+        }
+      };
+
       window.addEventListener("keydown", handleKeyDown);
-      return () => window.removeEventListener("keydown", handleKeyDown);
+      return () => {
+        window.removeEventListener("keydown", handleKeyDown);
+        document.body.style.overflow = "";
+        document.body.removeAttribute("data-project-preview-open");
+        document.body.classList.remove("preview-modal-open");
+      };
+    } else {
+      document.body.style.overflow = "";
+      document.body.removeAttribute("data-project-preview-open");
+      document.body.classList.remove("preview-modal-open");
     }
-  }, [selectedImageIndex, totalModalImages]);
+  }, [selectedImageIndex, isLightboxOpen, totalModalImages]);
 
   return (
     <div className={`w-full select-none ${className}`.trim()}>
@@ -407,10 +413,10 @@ export function ImageExpansionSlider({
         </button>
       </div>
 
-      {/* Compact & Scrollable Project Preview Dialog Modal via Portal at z-[100] */}
+      {/* Compact & Scrollable Project Preview Dialog Modal via Portal at z-[200] */}
       {mounted && selectedProject && createPortal(
         <div
-          className="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md overflow-hidden flex items-center justify-center p-4 sm:p-6"
+          className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md overflow-hidden flex items-center justify-center p-4 sm:p-6"
           onClick={() => setSelectedImageIndex(null)}
         >
           <div
@@ -420,7 +426,7 @@ export function ImageExpansionSlider({
             {/* Close Button pinned at top-right of modal */}
             <button
               type="button"
-              className="absolute top-3.5 right-3.5 z-40 w-8 h-8 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xs transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
+              className="absolute top-3.5 right-3.5 z-50 w-8 h-8 rounded-full bg-black/80 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xs transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
               onClick={() => setSelectedImageIndex(null)}
               aria-label="Close modal"
             >
@@ -524,19 +530,25 @@ export function ImageExpansionSlider({
 
             {/* RIGHT SIDE: Visual Showcase (Full fit content, click image for full res) */}
             <div className="w-full md:w-[58%] lg:w-[62%] h-full flex flex-col justify-between bg-[#040406] relative p-4 sm:p-6 overflow-hidden">
-              {/* Main Image Stage (fits container naturally, no zoom in, click to view original) */}
+              {/* Main Image Stage (fits container naturally, click to open full-res lightbox pop-up) */}
               <div className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center overflow-hidden">
-                <img
-                  key={currentModalImageIdx}
-                  src={modalImages[currentModalImageIdx] || selectedProject.image}
-                  alt={`${selectedProject.title} - Slide ${currentModalImageIdx + 1}`}
-                  onClick={() => {
-                    const activeSrc = modalImages[currentModalImageIdx] || selectedProject.image;
-                    if (activeSrc) window.open(activeSrc, "_blank");
-                  }}
-                  title="Klik untuk melihat gambar asli"
-                  className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl drop-shadow-2xl select-none cursor-pointer transition-opacity hover:opacity-90"
-                />
+                <div className="relative group flex items-center justify-center max-w-full max-h-full">
+                  <img
+                    key={currentModalImageIdx}
+                    src={modalImages[currentModalImageIdx] || selectedProject.image}
+                    alt={`${selectedProject.title} - Slide ${currentModalImageIdx + 1}`}
+                    onClick={() => setIsLightboxOpen(true)}
+                    title="Klik untuk memperbesar gambar"
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-lg shadow-xl drop-shadow-2xl select-none cursor-zoom-in transition-all duration-200 group-hover:brightness-105"
+                  />
+                  {/* Hover hint badge */}
+                  <div
+                    onClick={() => setIsLightboxOpen(true)}
+                    className="absolute bottom-2.5 right-2.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/80 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/20 text-[11px] font-medium text-white flex items-center gap-1.5 shadow-lg cursor-pointer"
+                  >
+                    
+                  </div>
+                </div>
 
                 {/* Nav Arrows (if multiple images) */}
                 {totalModalImages > 1 && (
@@ -589,6 +601,113 @@ export function ImageExpansionSlider({
               )}
             </div>
           </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Full-Resolution Image Lightbox Pop-up Modal via React Portal at z-[300] */}
+      {mounted && isLightboxOpen && selectedProject && createPortal(
+        <div
+          className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 sm:p-6 animate-in fade-in duration-200 select-none"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          {/* Top Bar: Title, Counter & Close Button */}
+          <div
+            className="w-full flex items-center justify-between px-2 py-1 text-white shrink-0 z-10"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col">
+              <h4 className="text-sm sm:text-base font-bold text-white truncate max-w-[70vw] sm:max-w-md">
+                {selectedProject.title}
+              </h4>
+              {totalModalImages > 1 && (
+                <span className="text-[11px] sm:text-xs text-neutral-400">
+                  Gambar {currentModalImageIdx + 1} dari {totalModalImages}
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setIsLightboxOpen(false)}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 flex items-center justify-center text-sm font-bold transition-all shadow-lg hover:scale-105 active:scale-95 cursor-pointer backdrop-blur-md"
+              aria-label="Tutup gambar penuh"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Center Stage: Full Resolution Image with Nav Arrows */}
+          <div className="relative flex-1 w-full h-full min-h-0 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
+            <img
+              src={modalImages[currentModalImageIdx] || selectedProject.image}
+              alt={`${selectedProject.title} - Resolusi Penuh`}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-full max-h-[82vh] w-auto h-auto object-contain rounded-xl shadow-2xl transition-transform duration-200 select-none drop-shadow-2xl"
+            />
+
+            {/* Left Arrow (Previous Photo) */}
+            {totalModalImages > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentModalImageIdx((prev) =>
+                    prev > 0 ? prev - 1 : totalModalImages - 1
+                  );
+                }}
+                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xl font-bold transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer backdrop-blur-md"
+                aria-label="Gambar sebelumnya"
+              >
+                ‹
+              </button>
+            )}
+
+            {/* Right Arrow (Next Photo) */}
+            {totalModalImages > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrentModalImageIdx((prev) =>
+                    prev < totalModalImages - 1 ? prev + 1 : 0
+                  );
+                }}
+                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-black/75 hover:bg-black text-white border border-white/20 flex items-center justify-center text-xl font-bold transition-all hover:scale-110 active:scale-95 shadow-2xl cursor-pointer backdrop-blur-md"
+                aria-label="Gambar berikutnya"
+              >
+                ›
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnails Strip (if multiple photos) */}
+          {totalModalImages > 1 && (
+            <div
+              className="flex items-center justify-center gap-2.5 pt-2 pb-1 shrink-0 z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {modalImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setCurrentModalImageIdx(idx)}
+                  className={`relative rounded-lg overflow-hidden border-2 transition-all cursor-pointer ${
+                    currentModalImageIdx === idx
+                      ? "border-white scale-110 shadow-lg"
+                      : "border-transparent opacity-60 hover:opacity-100"
+                  }`}
+                  aria-label={`Pilih gambar ${idx + 1}`}
+                >
+                  <img
+                    src={img}
+                    alt={`Thumbnail ${idx + 1}`}
+                    className="w-10 h-8 sm:w-14 sm:h-10 object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>,
         document.body
       )}

@@ -2,6 +2,7 @@ import { Playfair_Display } from "next/font/google";
 import LightRays from "@/components/LightRays";
 import TiltedCard from "@/components/TiltedCard";
 import SpecularButton from "@/components/SpecularButton";
+import CvPreviewModal from "@/components/CvPreviewModal";
 import { cn } from "@/lib/utils";
 
 import TechTools from "@/components/TechTools";
@@ -93,7 +94,7 @@ export default async function Home() {
         />
         <div className="pointer-events-none absolute inset-0 bg-[#F8F9FA] [mask-image:radial-gradient(ellipse_at_center,transparent_35%,black)] opacity-80" />
 
-        <div className="relative z-10 max-w-6xl mx-auto flex flex-col justify-center gap-16">
+        <div className="relative z-10 max-w-6xl mx-auto flex flex-col justify-center gap-8 md:gap-16">
           <h2 className="text-center text-[24px] md:text-[34px] font-bold text-black mb-2 flex items-baseline justify-center">
             <span className={`${playfair.className} text-[42px] md:text-[62px] font-semibold italic mr-0.5 leading-none select-none`}>
               Persona
@@ -159,11 +160,9 @@ export default async function Home() {
 
               
               <div className="flex justify-center md:justify-start">
-                <a 
-                  href={profile.cv_url || "/cv.pdf"} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-block"
+                <CvPreviewModal
+                  cvUrl={profile.cv_url || "/cv.pdf"}
+                  name={profile.name || "Bintang Dimas"}
                 >
                   <SpecularButton
                     size="md"
@@ -182,11 +181,11 @@ export default async function Home() {
                     followMouse={false}
                     proximity={250}
                     autoAnimate
-                    className="bg-white hover:bg-neutral-50 shadow-md hover:shadow-xl hover:scale-[1.03] hover:-translate-y-0.5 border border-neutral-200/60 font-semibold transition-all duration-300 ease-out"
+                    className="bg-white hover:bg-neutral-50 shadow-md hover:shadow-xl hover:scale-[1.03] hover:-translate-y-0.5 border border-neutral-200/60 font-semibold transition-all duration-300 ease-out cursor-pointer"
                   >
                     Preview CV
                   </SpecularButton>
-                </a>
+                </CvPreviewModal>
               </div>
             </div>
           </div>

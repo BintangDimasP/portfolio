@@ -222,7 +222,7 @@ export default function Contact() {
                     type="submit"
                     className="px-9 py-3.5 rounded-2xl bg-white text-black font-semibold text-[15px] hover:bg-neutral-200 active:scale-[0.98] transition-all duration-200 shadow-md cursor-pointer"
                   >
-                    Submit
+                    Send
                   </button>
                 </div>
               </form>

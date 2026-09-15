@@ -84,13 +84,77 @@ export async function saveProject(formData: FormData) {
   };
 
   if (id) {
-    // Update
+    // Update existing project
     const { error } = await supabase.from("projects").update(projectPayload).eq("id", id);
     if (error) throw new Error(error.message);
   } else {
-    // Insert
-    const { error } = await supabase.from("projects").insert([projectPayload]);
-    if (error) throw new Error(error.message);
+    // Insert new project
+    // If display_order is 0 or unassigned, place it at the top (#1) and shift others
+    if (projectPayload.display_order <= 0) {
+      projectPayload.display_order = 1;
+      const { data: inserted, error: insertError } = await supabase
+        .from("projects")
+        .insert([projectPayload])
+        .select("id")
+        .single();
+      if (insertError) throw new Error(insertError.message);
+
+      // Auto-shift other projects so there are no collisions
+      try {
+        const { data: others } = await supabase
+          .from("projects")
+          .select("id")
+          .neq("id", inserted.id)
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: false });
+
+        if (others && others.length > 0) {
+          await Promise.all(
+            others.map((p, idx) =>
+              supabase
+                .from("projects")
+                .update({ display_order: idx + 2 })
+                .eq("id", p.id)
+            )
+          );
+        }
+      } catch (shiftErr) {
+        console.warn("Auto-shift display_order warning:", shiftErr);
+      }
+    } else {
+      const { error } = await supabase.from("projects").insert([projectPayload]);
+      if (error) throw new Error(error.message);
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin");
+  revalidatePath("/admin/projects");
+  return { success: true };
+}
+
+export async function reorderProjects(orderedIds: number[]) {
+  const isAuth = await isAdminAuthenticated();
+  if (!isAuth) throw new Error("Unauthorized");
+
+  const supabase = getAdminSupabase();
+
+  // Update display_order for each ID sequentially: 1, 2, 3, ...
+  const updates = orderedIds.map((id, index) =>
+    supabase
+      .from("projects")
+      .update({
+        display_order: index + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+  );
+
+  const results = await Promise.all(updates);
+  const failed = results.find((r) => r.error);
+  if (failed && failed.error) {
+    console.error("Failed to reorder projects:", failed.error);
+    throw new Error(failed.error.message);
   }
 
   revalidatePath("/");
@@ -107,7 +171,30 @@ export async function deleteProject(id: number) {
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) throw new Error(error.message);
 
+  // Auto-normalize display_order for remaining projects
+  try {
+    const { data: remaining } = await supabase
+      .from("projects")
+      .select("id")
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (remaining && remaining.length > 0) {
+      await Promise.all(
+        remaining.map((p, idx) =>
+          supabase
+            .from("projects")
+            .update({ display_order: idx + 1 })
+            .eq("id", p.id)
+        )
+      );
+    }
+  } catch (syncErr) {
+    console.warn("Auto-sync display_order on delete warning:", syncErr);
+  }
+
   revalidatePath("/");
+  revalidatePath("/admin");
   revalidatePath("/admin/projects");
   return { success: true };
 }

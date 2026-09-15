@@ -287,7 +287,10 @@ export default function ProjectModal({
 
             {/* Display Order */}
             <div>
-              <label className={labelCls}>Urutan Tampilan</label>
+              <div className="flex items-baseline justify-between">
+                <label className={labelCls}>Urutan Tampilan</label>
+                <span className="text-[11px] text-gray-400">Opsional</span>
+              </div>
               <input
                 type="number"
                 name="display_order"
@@ -295,6 +298,9 @@ export default function ProjectModal({
                 min={0}
                 className={`mt-1.5 w-32 ${inputCls}`}
               />
+              <p className="mt-1 text-[11px] text-gray-500">
+                Isi 0 atau kosongkan agar otomatis berada di urutan paling awal (posisi #1). Anda juga bisa mengubah urutan secara visual dengan drag & drop di daftar proyek.
+              </p>
             </div>
           </div>
 

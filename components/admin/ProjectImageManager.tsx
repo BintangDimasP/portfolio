@@ -1,8 +1,44 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, Trash2, Star, RefreshCw, Plus, Image as ImageIcon, Loader2 } from "lucide-react";
+import {
+  Upload,
+  Trash2,
+  Star,
+  RefreshCw,
+  Plus,
+  Image as ImageIcon,
+  Loader2,
+  FileText,
+} from "lucide-react";
 import { uploadProjectImage } from "@/app/admin/actions";
+
+// Render a single PDF page to a PNG Blob using pdfjs-dist (loaded dynamically)
+async function renderPdfPageToBlob(
+  pdf: any,
+  pageNum: number,
+  scale: number = 1.5
+): Promise<Blob> {
+  const page = await pdf.getPage(pageNum);
+  const viewport = page.getViewport({ scale });
+
+  const canvas = document.createElement("canvas");
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+
+  const ctx = canvas.getContext("2d")!;
+  await page.render({ canvasContext: ctx, viewport }).promise;
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Failed to convert canvas to blob"));
+      },
+      "image/png"
+    );
+  });
+}
 
 interface ProjectImageManagerProps {
   images: string[];
@@ -17,10 +53,15 @@ export default function ProjectImageManager({
 }: ProjectImageManagerProps) {
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [isAddingUpload, setIsAddingUpload] = useState(false);
+  const [isPdfUploading, setIsPdfUploading] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState<{ current: number; total: number } | null>(null);
   const [urlInput, setUrlInput] = useState("");
   const addFileInputRef = useRef<HTMLInputElement>(null);
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
+  const pdfFileInputRef = useRef<HTMLInputElement>(null);
   const [replaceTargetIndex, setReplaceTargetIndex] = useState<number | null>(null);
+
+  const isAnyUploading = isAddingUpload || isPdfUploading;
 
   // Add via file upload
   const handleAddNewFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,6 +123,69 @@ export default function ProjectImageManager({
     }
   };
 
+  // PDF → slides: render each page client-side then upload to Supabase
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith(".pdf")) {
+      setError("Hanya file PDF yang didukung untuk fitur upload slide.");
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      setError("Ukuran file PDF melebihi batas maksimal 50 MB.");
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = "";
+      return;
+    }
+
+    setIsPdfUploading(true);
+    setPdfProgress(null);
+    setError("");
+
+    try {
+      // Dynamically import pdfjs-dist (already installed via react-pdf)
+      const pdfjs = await import("pdfjs-dist");
+      // Use the same CDN worker as CvPdfViewer
+      (pdfjs as any).GlobalWorkerOptions.workerSrc =
+        `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+      const totalPages = pdf.numPages;
+
+      setPdfProgress({ current: 0, total: totalPages });
+
+      const uploadedUrls: string[] = [];
+
+      for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+        setPdfProgress({ current: pageNum, total: totalPages });
+
+        // Render page to PNG blob at 1.5x scale (~1080px wide for landscape)
+        const blob = await renderPdfPageToBlob(pdf, pageNum, 1.5);
+
+        const formData = new FormData();
+        formData.append(
+          "file",
+          new File([blob], `slide-${pageNum}.png`, { type: "image/png" })
+        );
+        const res = await uploadProjectImage(formData);
+        if (res?.url) uploadedUrls.push(res.url);
+      }
+
+      if (uploadedUrls.length > 0) {
+        onChange([...images, ...uploadedUrls]);
+      }
+    } catch (err: any) {
+      setError(err.message || "Gagal mengkonversi PDF ke gambar slide.");
+    } finally {
+      setIsPdfUploading(false);
+      setPdfProgress(null);
+      if (pdfFileInputRef.current) pdfFileInputRef.current.value = "";
+    }
+  };
+
   // Add via URL
   const handleAddUrl = () => {
     const clean = urlInput.trim();
@@ -120,6 +224,27 @@ export default function ProjectImageManager({
           {images.length} gambar {images.length > 0 ? `(Cover: #${1})` : ""}
         </span>
       </div>
+
+      {/* PDF Upload Progress Banner */}
+      {isPdfUploading && pdfProgress && (
+        <div className="flex items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-3">
+          <Loader2 className="h-4 w-4 animate-spin text-brand-500 shrink-0" />
+          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+            <p className="text-xs font-semibold text-brand-700">Mengkonversi PDF ke slide...</p>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 h-1.5 rounded-full bg-brand-100 overflow-hidden">
+                <div
+                  className="h-full bg-brand-500 rounded-full transition-all duration-300"
+                  style={{ width: `${(pdfProgress.current / pdfProgress.total) * 100}%` }}
+                />
+              </div>
+              <span className="text-[11px] text-brand-600 font-medium shrink-0">
+                {pdfProgress.current}/{pdfProgress.total} slide
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Grid of Images */}
       {images.length > 0 ? (
@@ -160,6 +285,11 @@ export default function ProjectImageManager({
                       Cover Utama
                     </span>
                   )}
+
+                  {/* Slide number badge */}
+                  <span className="absolute bottom-2 right-2 z-10 inline-flex items-center rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
+                    #{index + 1}
+                  </span>
 
                   {/* Action Buttons Overlay */}
                   <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity">
@@ -230,25 +360,53 @@ export default function ProjectImageManager({
         className="hidden"
       />
 
+      {/* Hidden File Input for PDF */}
+      <input
+        ref={pdfFileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        onChange={handlePdfUpload}
+        className="hidden"
+      />
+
       {/* Add New Image Controls */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
-        {/* Upload Button */}
-        <label className="flex items-center justify-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-theme-xs cursor-pointer shrink-0">
+        {/* Upload Image Button */}
+        <label className={`flex items-center justify-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-theme-xs shrink-0 ${isAnyUploading ? "opacity-50 cursor-not-allowed pointer-events-none" : "cursor-pointer"}` }>
           {isAddingUpload ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-500" />
           ) : (
             <Upload className="h-3.5 w-3.5 text-gray-500" />
           )}
-          <span>{isAddingUpload ? "Mengunggah..." : "+ Upload File Foto"}</span>
+          <span>{isAddingUpload ? "Mengunggah..." : "+ Upload Foto"}</span>
           <input
             ref={addFileInputRef}
             type="file"
             accept="image/*"
-            disabled={isAddingUpload}
+            disabled={isAnyUploading}
             onChange={handleAddNewFile}
             className="hidden"
           />
         </label>
+
+        {/* Upload PDF Slide Button */}
+        <button
+          type="button"
+          disabled={isAnyUploading}
+          onClick={() => pdfFileInputRef.current?.click()}
+          className="flex items-center justify-center gap-2 rounded-lg bg-white border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-colors shadow-theme-xs cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isPdfUploading ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-brand-500" />
+          ) : (
+            <FileText className="h-3.5 w-3.5 text-gray-500" />
+          )}
+          <span>
+            {isPdfUploading
+              ? `Slide ${pdfProgress?.current ?? "…"}/${pdfProgress?.total ?? "…"}`
+              : "+ Upload PDF Slide"}
+          </span>
+        </button>
 
         {/* URL Input */}
         <div className="flex flex-1 items-center gap-2">
@@ -281,7 +439,7 @@ export default function ProjectImageManager({
       <input type="hidden" name="images" value={images.join("\n")} />
 
       <p className="text-[11px] text-gray-400">
-        💡 Gambar pertama otomatis menjadi <strong>Cover Utama</strong>. Anda dapat mengunggah beberapa gambar untuk galeri multi-foto di portfolio.
+        💡 Gambar pertama otomatis menjadi <strong>Cover Utama</strong>. Upload PDF untuk otomatis mengkonversi setiap halaman menjadi slide gambar, seperti fitur LinkedIn.
       </p>
     </div>
   );

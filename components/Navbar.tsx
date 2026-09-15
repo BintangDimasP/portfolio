@@ -18,11 +18,32 @@ export default function Navbar() {
   const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [projectPreviewOpen, setProjectPreviewOpen] = useState(false);
 
   // Hide Navbar completely on all admin routes
   if (pathname?.startsWith("/admin")) {
     return null;
   }
+
+  // Observe whether a project preview modal is currently open
+  useEffect(() => {
+    const checkPreviewState = () => {
+      const isOpen = document.body.getAttribute("data-project-preview-open") === "true";
+      setProjectPreviewOpen(isOpen);
+      if (isOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    checkPreviewState();
+    const observer = new MutationObserver(checkPreviewState);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["data-project-preview-open"],
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -36,13 +57,15 @@ export default function Navbar() {
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = "hidden";
-    } else {
+    } else if (!projectPreviewOpen) {
       document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "";
+      if (!projectPreviewOpen) {
+        document.body.style.overflow = "";
+      }
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, projectPreviewOpen]);
 
   // Close on Escape key
   useEffect(() => {
@@ -92,7 +115,13 @@ export default function Navbar() {
       </nav>
 
       {/* MOBILE TRIGGER: Standalone Floating Circle Button (No Pill / No Wrapper) */}
-      <div className="fixed top-4 right-4 z-[110] md:hidden pointer-events-auto">
+      <div
+        className={`fixed top-4 right-4 z-[110] md:hidden pointer-events-auto transition-all duration-300 ${
+          projectPreviewOpen
+            ? "opacity-0 pointer-events-none scale-75 select-none invisible"
+            : "opacity-100 scale-100 visible"
+        }`}
+      >
         <div className="w-11 h-11 rounded-full bg-black/60 backdrop-blur-xl border border-white/20 shadow-2xl flex items-center justify-center hover:bg-black/80 active:scale-95 transition-all">
           <HamburgerIcon
             isOpen={mobileMenuOpen}
