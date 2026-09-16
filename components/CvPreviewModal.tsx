@@ -2,19 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import dynamic from "next/dynamic";
-
-const CvPdfViewer = dynamic(() => import("./CvPdfViewer"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-neutral-400 min-h-[50vh]">
-      <div className="w-7 h-7 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-      <span className="text-xs font-medium text-neutral-300">
-        Menyiapkan dokumen...
-      </span>
-    </div>
-  ),
-});
 
 interface CvPreviewModalProps {
   cvUrl: string;
@@ -28,10 +15,24 @@ export default function CvPreviewModal({
 }: CvPreviewModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [ViewerComponent, setViewerComponent] = useState<React.ComponentType<{ cvUrl: string }> | null>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Lazy-load PDF viewer strictly on demand when user opens modal to eliminate initial 723 KiB payload
+  useEffect(() => {
+    if (isOpen && !ViewerComponent) {
+      import("./CvPdfViewer")
+        .then((mod) => {
+          setViewerComponent(() => mod.default);
+        })
+        .catch((err) => {
+          console.error("Failed to load PDF viewer:", err);
+        });
+    }
+  }, [isOpen, ViewerComponent]);
 
   // Lock body scroll when modal is open, listen to Escape
   useEffect(() => {
@@ -105,7 +106,16 @@ export default function CvPreviewModal({
               className="relative flex flex-col w-full max-w-4xl h-[92vh] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-neutral-950/90 animate-in zoom-in-95 duration-200"
               onClick={(e) => e.stopPropagation()}
             >
-              <CvPdfViewer cvUrl={cvUrl} />
+              {ViewerComponent ? (
+                <ViewerComponent cvUrl={cvUrl} />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-neutral-400 min-h-[50vh]">
+                  <div className="w-7 h-7 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                  <span className="text-xs font-medium text-neutral-300">
+                    Menyiapkan dokumen...
+                  </span>
+                </div>
+              )}
             </div>
           </div>,
           document.body

@@ -1,9 +1,9 @@
-import { Playfair_Display } from "next/font/google";
 import LightRays from "@/components/LightRays";
 import TiltedCard from "@/components/TiltedCard";
 import SpecularButton from "@/components/SpecularButton";
 import CvPreviewModal from "@/components/CvPreviewModal";
 import { cn } from "@/lib/utils";
+import { playfair } from "@/lib/fonts";
 
 import TechTools from "@/components/TechTools";
 import WorkExperience from "@/components/WorkExperience";
@@ -13,15 +13,7 @@ import ScrollBlurSection from "@/components/ScrollBlurSection";
 import { ArrowRight } from "lucide-react";
 import { getProjects, getExperiences, getProfile, getTechTools } from "@/app/admin/actions";
 
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["italic"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function Home() {
   const [projects, experiences, profile, techTools] = await Promise.all([

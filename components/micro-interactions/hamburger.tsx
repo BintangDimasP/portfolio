@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 
 interface HamburgerIconProps {
   isOpen: boolean;
@@ -16,10 +15,12 @@ export function HamburgerIcon({
   isOpen,
   color = "#ffffff",
   size = 20,
-  strokeWidth = 2.2,
+  strokeWidth = 2,
   className = "",
   onClick,
 }: HamburgerIconProps) {
+  const halfTravel = size * 0.35 - strokeWidth / 2;
+
   return (
     <button
       type="button"
@@ -28,49 +29,45 @@ export function HamburgerIcon({
       style={{ width: size + 10, height: size + 10 }}
       aria-label={isOpen ? "Close navigation menu" : "Open navigation menu"}
     >
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <div
+        className="relative flex flex-col justify-between"
+        style={{ width: size, height: size * 0.7 }}
       >
-        {/* Top bar morphs directly into Diagonal 1 of X */}
-        <motion.path
-          d={isOpen ? "M 5 5 L 19 19" : "M 4 7 L 20 7"}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          animate={{
-            d: isOpen ? "M 5 5 L 19 19" : "M 4 7 L 20 7",
+        {/* Top bar */}
+        <span
+          className="block w-full rounded-full transition-all duration-300 ease-out origin-center"
+          style={{
+            height: strokeWidth,
+            backgroundColor: color,
+            transform: isOpen
+              ? `translateY(${halfTravel}px) rotate(45deg)`
+              : "none",
           }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
         />
 
-        {/* Middle bar fades out cleanly */}
-        <motion.path
-          d="M 4 12 L 20 12"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          animate={{
+        {/* Middle bar */}
+        <span
+          className="block w-full rounded-full transition-all duration-200 ease-out origin-center"
+          style={{
+            height: strokeWidth,
+            backgroundColor: color,
             opacity: isOpen ? 0 : 1,
+            transform: isOpen ? "scaleX(0)" : "scaleX(1)",
           }}
-          transition={{ duration: 0.18, ease: "easeOut" }}
         />
 
-        {/* Bottom bar morphs directly into Diagonal 2 of X */}
-        <motion.path
-          d={isOpen ? "M 5 19 L 19 5" : "M 4 17 L 20 17"}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          animate={{
-            d: isOpen ? "M 5 19 L 19 5" : "M 4 17 L 20 17",
+        {/* Bottom bar */}
+        <span
+          className="block w-full rounded-full transition-all duration-300 ease-out origin-center"
+          style={{
+            height: strokeWidth,
+            backgroundColor: color,
+            transform: isOpen
+              ? `translateY(-${halfTravel}px) rotate(-45deg)`
+              : "none",
           }}
-          transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
         />
-      </svg>
+      </div>
     </button>
   );
 }

@@ -1,17 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Playfair_Display } from "next/font/google";
 import { cn, isProjectAcademic } from "@/lib/utils";
 import { ImageExpansionSlider, SlideItem } from "@/components/ui/image-expansion";
 import { supabase } from "@/lib/supabase/client";
-
-const playfair = Playfair_Display({
-  subsets: ["latin"],
-  style: ["italic"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
+import { playfair } from "@/lib/fonts";
 
 export default function Projects({ initialProjects }: { initialProjects?: any[] }) {
   const [dbProjects, setDbProjects] = useState<any[]>(initialProjects || []);

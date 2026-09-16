@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import Image from "next/image";
 import { isDesignCategory, isProjectAcademic } from "@/lib/utils";
 
 export interface SlideItem {
@@ -331,11 +332,17 @@ export function ImageExpansionSlider({
             >
               {/* Background Image with Zoom & Dark Vignette */}
               <div className="absolute inset-0 z-0">
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
+                {slide.image && (
+                  <Image
+                    src={slide.image}
+                    alt={slide.title}
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    priority={idx === 0}
+                    loading={idx === 0 ? "eager" : "lazy"}
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
@@ -395,17 +402,23 @@ export function ImageExpansionSlider({
         </button>
 
         {/* Step Indicators - selalu ditampilkan agar ukuran section tetap konsisten */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           {Array.from({ length: totalSteps }).map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => canSlide && scrollToIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
-                currentIdx === idx ? "w-7 bg-black" : "w-2 bg-neutral-300 hover:bg-neutral-500"
-              } ${canSlide ? "cursor-pointer" : "cursor-default pointer-events-none"}`}
+              className={`p-2 flex items-center justify-center ${
+                canSlide ? "cursor-pointer" : "cursor-default pointer-events-none"
+              }`}
               aria-label={`Go to slide step ${idx + 1}`}
-            />
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  currentIdx === idx ? "w-7 bg-black" : "w-2 bg-neutral-300 hover:bg-neutral-500"
+                }`}
+              />
+            </button>
           ))}
         </div>
 

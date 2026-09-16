@@ -152,7 +152,9 @@ export default function Contact() {
                   <div>
                     <input
                       id="name"
+                      name="name"
                       type="text"
+                      autoComplete="name"
                       required
                       maxLength={100}
                       placeholder="Name / Company"
@@ -165,7 +167,9 @@ export default function Contact() {
                   <div>
                     <input
                       id="phone"
+                      name="phone"
                       type="tel"
+                      autoComplete="tel"
                       maxLength={30}
                       placeholder="Phone"
                       value={formData.phone}
@@ -179,7 +183,9 @@ export default function Contact() {
                 <div>
                   <input
                     id="email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     required
                     maxLength={120}
                     placeholder="Email"
@@ -193,7 +199,9 @@ export default function Contact() {
                 <div>
                   <input
                     id="subject"
+                    name="subject"
                     type="text"
+                    autoComplete="off"
                     maxLength={200}
                     placeholder="Subject"
                     value={formData.subject}
@@ -206,6 +214,8 @@ export default function Contact() {
                 <div>
                   <textarea
                     id="message"
+                    name="message"
+                    autoComplete="off"
                     required
                     maxLength={3000}
                     rows={1}
@@ -231,7 +241,7 @@ export default function Contact() {
         </div>
 
         {/* Footer Note (Menempel langsung tanpa jarak mengambang) */}
-        <div className="pt-8 pb-8 border-t border-neutral-900 w-full text-center text-xs text-neutral-500 ">
+        <div className="pt-8 pb-8 border-t border-neutral-900 w-full text-center text-xs text-neutral-400">
           <p>© {new Date().getFullYear()} Bintang Dimas. All rights reserved.</p>
         </div>
       </div>

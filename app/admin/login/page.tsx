@@ -52,8 +52,10 @@ export default function AdminLoginPage() {
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
+                id="password"
                 type={showPassword ? "text" : "password"}
                 name="password"
+                autoComplete="current-password"
                 required
                 autoFocus
                 placeholder="Masukkan password admin..."

@@ -127,6 +127,8 @@ export default function TiltedCard({
         <motion.img
           src={imageSrc}
           alt={altText}
+          loading="lazy"
+          decoding="async"
           className="absolute top-0 left-0 w-full h-full will-change-transform [transform:translateZ(0)]"
           style={{
             width: imageWidth,

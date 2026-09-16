@@ -131,6 +131,8 @@ export default function TechTools({ initialTools, className }: TechToolsProps) {
             <img
               src={t.icon_url}
               alt={t.label}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-contain"
             />
           ),

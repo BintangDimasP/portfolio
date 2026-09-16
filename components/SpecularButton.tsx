@@ -193,7 +193,11 @@ export const SpecularButton = ({
 
     let pointerAngle: number | null = null;
     let proximityT = 0;
+    let isIntersecting = false;
+    let isRunning = false;
+
     const onPointerMove = (e: PointerEvent) => {
+      if (!isIntersecting) return;
       const rect = btn.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
       const cy = rect.top + rect.height / 2;
@@ -210,7 +214,7 @@ export const SpecularButton = ({
       const t = Math.max(0, 1 - dist / Math.max(propsRef.current.proximity, 1));
       proximityT = t * t * (3 - 2 * t);
     };
-    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
 
     let angle = 2.4;
     let idleAngle = 2.4;
@@ -222,6 +226,10 @@ export const SpecularButton = ({
     const baseC = new Color();
 
     const update = (now: number) => {
+      if (!isIntersecting) {
+        isRunning = false;
+        return;
+      }
       raf = requestAnimationFrame(update);
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
@@ -248,10 +256,38 @@ export const SpecularButton = ({
       program.uniforms.uThickness.value = p.thickness * dpr;
       renderer.render({ scene: mesh });
     };
-    raf = requestAnimationFrame(update);
+
+    const startLoop = () => {
+      if (!isRunning) {
+        isRunning = true;
+        last = performance.now();
+        raf = requestAnimationFrame(update);
+      }
+    };
+
+    const stopLoop = () => {
+      if (isRunning) {
+        isRunning = false;
+        cancelAnimationFrame(raf);
+      }
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isIntersecting = entry.isIntersecting;
+        if (isIntersecting) {
+          startLoop();
+        } else {
+          stopLoop();
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(btn);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stopLoop();
+      observer.disconnect();
       ro.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
       if (gl.canvas.parentNode === fx) fx.removeChild(gl.canvas);
