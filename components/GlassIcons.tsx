@@ -31,7 +31,7 @@ const gradientMapping: Record<string, string> = {
   teal: 'linear-gradient(145deg, #14b8a6, #0f766e)'
 };
 
-export const GlassIcons: React.FC<GlassIconsProps> = ({ items, className, showLabel = false }) => {
+export const GlassIcons: React.FC<GlassIconsProps> = ({ items, className, showLabel = true }) => {
   const getBackgroundStyle = (color: string): React.CSSProperties => {
     if (gradientMapping[color]) {
       return { background: gradientMapping[color] };
@@ -40,45 +40,48 @@ export const GlassIcons: React.FC<GlassIconsProps> = ({ items, className, showLa
   };
 
   return (
-    <div className={`grid grid-cols-4 md:grid-cols-5 gap-2 sm:gap-3.5 md:gap-4 py-1 overflow-visible ${className || ''}`}>
+    <div className={`grid grid-cols-4 md:grid-cols-5 gap-y-2.5 gap-x-1.5 sm:gap-y-3 sm:gap-x-2.5 md:gap-y-3.5 md:gap-x-3 py-1 overflow-visible ${className || ''}`}>
       {items.map((item, index) => (
-        <div key={index} className="flex flex-col items-center justify-center p-0.5 sm:p-1">
+        <div key={index} className="group flex flex-col items-center justify-start p-0.5">
           <button
             type="button"
             aria-label={item.label || `Icon ${index}`}
             title={item.label}
-            className={`relative bg-transparent outline-none border-none cursor-pointer w-[4.6em] h-[4.6em] [perspective:24em] [transform-style:preserve-3d] [-webkit-tap-highlight-color:transparent] group hover:z-30 focus:z-30 ${
+            className={`relative bg-transparent outline-none border-none cursor-pointer w-[3.8em] h-[3.8em] [perspective:24em] [transform-style:preserve-3d] [-webkit-tap-highlight-color:transparent] hover:z-30 focus:z-30 ${
               item.customClass || ''
             }`}
           >
             {/* Background 3D rotating layer */}
             <span
-              className="absolute top-0 left-0 w-full h-full rounded-[1.3em] block transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.83,0,0.17,1)] origin-[100%_100%] rotate-[12deg] [will-change:transform] group-hover:[transform:rotate(22deg)_translate3d(-0.45em,-0.45em,0.45em)] shadow-md"
+              className="absolute top-0 left-0 w-full h-full rounded-[1.15em] block transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.83,0,0.17,1)] origin-[100%_100%] rotate-[12deg] [will-change:transform] group-hover:[transform:rotate(20deg)_translate3d(-0.35em,-0.35em,0.35em)] shadow-md"
               style={{
                 ...getBackgroundStyle(item.color),
-                boxShadow: '0.4em -0.4em 0.6em rgba(0, 0, 0, 0.14)'
+                boxShadow: '0.3em -0.3em 0.5em rgba(0, 0, 0, 0.12)'
               }}
             ></span>
 
             {/* Glass layer with blur */}
             <span
-              className="absolute top-0 left-0 w-full h-full rounded-[1.3em] bg-white/70 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.83,0,0.17,1)] origin-[80%_50%] flex backdrop-blur-[0.75em] [-webkit-backdrop-filter:blur(0.75em)] [-moz-backdrop-filter:blur(0.75em)] [will-change:transform] transform group-hover:[transform:translate3d(0,0,1.8em)] shadow-sm"
+              className="absolute top-0 left-0 w-full h-full rounded-[1.15em] bg-white/75 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.83,0,0.17,1)] origin-[80%_50%] flex backdrop-blur-[0.7em] [-webkit-backdrop-filter:blur(0.7em)] [-moz-backdrop-filter:blur(0.7em)] [will-change:transform] transform group-hover:[transform:translate3d(0,0,1.5em)] shadow-sm"
               style={{
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.06)'
+                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.06)'
               }}
             >
-              <span className="m-auto flex h-[2.7em] w-[2.7em] items-center justify-center" aria-hidden="true">
+              <span className="m-auto flex h-[2.2em] w-[2.2em] items-center justify-center" aria-hidden="true">
                 {item.icon}
               </span>
             </span>
-
-            {/* Optional Tooltip text on hover */}
-            {showLabel && item.label && (
-              <span className="pointer-events-none absolute top-full left-1/2 -translate-x-1/2 text-center whitespace-nowrap text-xs font-semibold text-neutral-800 opacity-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.83,0,0.17,1)] group-hover:opacity-100 group-hover:translate-y-2.5 z-20">
-                {item.label}
-              </span>
-            )}
           </button>
+
+          {/* Label displayed by default (not only on hover) */}
+          {showLabel && item.label && (
+            <span
+              className="mt-1.5 text-center font-medium text-[9.5px] min-[360px]:text-[10px] sm:text-[11px] md:text-[11.5px] leading-tight text-neutral-700 group-hover:text-black group-hover:font-semibold transition-colors duration-200 select-none max-w-[62px] min-[360px]:max-w-[70px] sm:max-w-[80px] truncate"
+              title={item.label}
+            >
+              {item.label}
+            </span>
+          )}
         </div>
       ))}
     </div>

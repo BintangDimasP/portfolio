@@ -8,7 +8,7 @@ import { headers } from "next/headers";
 import { getAdminSupabase } from "@/lib/supabase/server";
 import { loginAdmin, logoutAdmin, isAdminAuthenticated } from "@/lib/admin-auth";
 import { sortExperiencesChronologically } from "@/lib/experience-sorter";
-import { normalizeSocialUrl } from "@/lib/utils";
+import { normalizeSocialUrl, isDesignCategory } from "@/lib/utils";
 
 // --- AUTH ACTIONS ---
 export async function handleLogin(formData: FormData) {
@@ -53,13 +53,18 @@ export async function saveProject(formData: FormData) {
   const supabase = getAdminSupabase();
   const id = formData.get("id") as string;
 
+  const rawCategory = (formData.get("category") as string) || "";
+  const isDesign = isDesignCategory(rawCategory);
+
   const rawImages = formData.get("images") as string;
   const images = rawImages
     ? rawImages.split("\n").map((s) => s.trim()).filter(Boolean)
     : [];
 
   const rawModules = formData.get("modules") as string;
-  const modules = rawModules
+  const modules = isDesign
+    ? []
+    : rawModules
     ? rawModules.split("\n").map((s) => s.trim()).filter(Boolean)
     : [];
 
@@ -68,11 +73,16 @@ export async function saveProject(formData: FormData) {
     ? rawTech.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
+  const isAcademic =
+    formData.get("is_academic") === "true" ||
+    formData.get("is_academic") === "on" ||
+    formData.get("button_text") === "Academy";
+
   const projectPayload = {
     title: formData.get("title") as string,
-    category: formData.get("category") as string,
+    category: rawCategory,
     company: (formData.get("company") as string) || null,
-    button_text: (formData.get("button_text") as string) || "Visit Site",
+    button_text: isAcademic ? "Academy" : "Visit Site",
     image: formData.get("image") as string,
     images: images.length > 0 ? images : [formData.get("image") as string],
     url: (formData.get("url") as string) || null,

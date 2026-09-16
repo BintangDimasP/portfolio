@@ -17,6 +17,38 @@ export function isGraphicDesignCategory(category?: string | null): boolean {
   );
 }
 
+export function isDesignCategory(category?: string | null): boolean {
+  if (!category) return false;
+  const c = category.toLowerCase().trim();
+  return (
+    c.includes("design") ||
+    c.includes("desain") ||
+    c.includes("ui/ux") ||
+    c.includes("ui-ux") ||
+    c.includes("ui ux") ||
+    c.includes("ux") ||
+    c.includes("graphic") ||
+    c.includes("grafis") ||
+    c.includes("product design")
+  );
+}
+
+export function isProjectAcademic(project?: any): boolean {
+  if (!project) return false;
+  const btn = String(project.button_text || project.buttonText || "").trim().toLowerCase();
+  const badge = String(project.badge || "").trim().toLowerCase();
+  return (
+    btn === "academy" ||
+    btn === "academic" ||
+    badge === "academy" ||
+    badge === "academic" ||
+    project.is_academic === true ||
+    project.is_academic === "true" ||
+    project.isAcademy === true ||
+    project.isAcademy === "true"
+  );
+}
+
 export function normalizeSocialUrl(url: string | null | undefined, platform: "github" | "linkedin"): string {
   if (!url) return "";
   let trimmed = url.trim();

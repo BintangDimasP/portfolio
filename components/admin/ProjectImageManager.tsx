@@ -10,6 +10,9 @@ import {
   Image as ImageIcon,
   Loader2,
   FileText,
+  GripVertical,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { uploadProjectImage } from "@/app/admin/actions";
 
@@ -60,6 +63,8 @@ export default function ProjectImageManager({
   const replaceFileInputRef = useRef<HTMLInputElement>(null);
   const pdfFileInputRef = useRef<HTMLInputElement>(null);
   const [replaceTargetIndex, setReplaceTargetIndex] = useState<number | null>(null);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   const isAnyUploading = isAddingUpload || isPdfUploading;
 
@@ -213,14 +218,72 @@ export default function ProjectImageManager({
     onChange([target, ...remaining]);
   };
 
+  // Drag and Drop handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const next = [...images];
+    const [item] = next.splice(draggedIndex, 1);
+    next.splice(targetIndex, 0, item);
+
+    onChange(next);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  // Quick reorder buttons
+  const moveImage = (index: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= images.length) return;
+    const next = [...images];
+    const [item] = next.splice(index, 1);
+    next.splice(targetIndex, 0, item);
+    onChange(next);
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      {/* Header with count badge */}
+      {/* Header with count badge and drag hint */}
       <div className="flex items-center justify-between">
-        <label className="block text-sm font-medium text-gray-700">
-          Galeri &amp; Cover Gambar Proyek <span className="text-error-500">*</span>
-        </label>
-        <span className="text-xs font-semibold text-brand-600 bg-brand-50 border border-brand-100 px-2.5 py-0.5 rounded-md">
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Galeri &amp; Cover Gambar Proyek <span className="text-error-500">*</span>
+          </label>
+          {images.length > 1 && (
+            <p className="text-[11px] text-gray-400 mt-0.5">
+              Tarik &amp; letakkan kartu gambar (drag &amp; drop) untuk mengatur urutan. Urutan #1 otomatis menjadi Cover Utama.
+            </p>
+          )}
+        </div>
+        <span className="text-xs font-semibold text-brand-600 bg-brand-50 border border-brand-100 px-2.5 py-0.5 rounded-md shrink-0">
           {images.length} gambar {images.length > 0 ? `(Cover: #${1})` : ""}
         </span>
       </div>
@@ -246,20 +309,32 @@ export default function ProjectImageManager({
         </div>
       )}
 
-      {/* Grid of Images */}
+      {/* Grid of Images with Drag and Drop Reordering */}
       {images.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
           {images.map((imgUrl, index) => {
             const isCover = index === 0;
             const isReplacing = uploadingIndex === index;
+            const isDragging = draggedIndex === index;
+            const isOver = dragOverIndex === index;
 
             return (
               <div
-                key={index}
-                className={`group relative flex flex-col rounded-xl border bg-white overflow-hidden transition-all shadow-theme-xs ${
-                  isCover
+                key={`${imgUrl}-${index}`}
+                draggable={!isAnyUploading && !isReplacing}
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+                className={`group relative flex flex-col rounded-xl border bg-white overflow-hidden transition-all shadow-theme-xs select-none cursor-grab active:cursor-grabbing ${
+                  isDragging
+                    ? "opacity-30 scale-95 border-dashed border-brand-500 ring-2 ring-brand-500/40"
+                    : isOver
+                    ? "border-brand-500 ring-2 ring-brand-500 scale-[1.02] shadow-theme-md"
+                    : isCover
                     ? "border-brand-500 ring-2 ring-brand-500/20 shadow-theme-sm"
-                    : "border-gray-200 hover:border-gray-300"
+                    : "border-gray-200 hover:border-brand-300 hover:shadow-theme-sm"
                 }`}
               >
                 {/* Thumbnail Preview */}
@@ -267,7 +342,7 @@ export default function ProjectImageManager({
                   <img
                     src={imgUrl}
                     alt={`Preview ${index + 1}`}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 pointer-events-none"
                   />
 
                   {/* Loading Overlay when replacing */}
@@ -286,6 +361,17 @@ export default function ProjectImageManager({
                     </span>
                   )}
 
+                  {/* Drag Handle Indicator */}
+                  <div
+                    className={`absolute top-2 z-10 flex items-center gap-1 rounded-md bg-black/65 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm shadow-sm opacity-90 sm:opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isCover ? "left-24" : "left-2"
+                    }`}
+                    title="Tarik untuk menggeser urutan posisi"
+                  >
+                    <GripVertical className="h-3 w-3 text-neutral-300" />
+                    <span>Geser</span>
+                  </div>
+
                   {/* Slide number badge */}
                   <span className="absolute bottom-2 right-2 z-10 inline-flex items-center rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
                     #{index + 1}
@@ -296,8 +382,11 @@ export default function ProjectImageManager({
                     {/* Delete Button */}
                     <button
                       type="button"
-                      onClick={() => handleDelete(index)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-error-600 shadow-md hover:bg-error-500 hover:text-white transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(index);
+                      }}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/90 text-error-600 shadow-md hover:bg-error-500 hover:text-white transition-colors cursor-pointer"
                       title="Hapus gambar ini"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -306,32 +395,64 @@ export default function ProjectImageManager({
                 </div>
 
                 {/* Footer Controls for Thumbnail */}
-                <div className="flex items-center justify-between p-2 text-xs border-t border-gray-100 bg-gray-50/50">
+                <div className="flex items-center justify-between p-2 text-xs border-t border-gray-100 bg-gray-50/50 gap-1.5">
+                  {/* Quick Move Arrows */}
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, "left");
+                      }}
+                      disabled={index === 0}
+                      title="Pindahkan ke kiri (# sebelumnya)"
+                      className="flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors disabled:opacity-20 disabled:pointer-events-none cursor-pointer"
+                    >
+                      <ArrowLeft className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveImage(index, "right");
+                      }}
+                      disabled={index === images.length - 1}
+                      title="Pindahkan ke kanan (# selanjutnya)"
+                      className="flex h-6 w-6 items-center justify-center rounded border border-gray-200 bg-white text-gray-600 hover:bg-brand-50 hover:text-brand-600 hover:border-brand-200 transition-colors disabled:opacity-20 disabled:pointer-events-none cursor-pointer"
+                    >
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+
                   {/* Set as Cover */}
                   {!isCover ? (
                     <button
                       type="button"
-                      onClick={() => handleSetCover(index)}
-                      className="text-gray-600 hover:text-brand-600 font-medium inline-flex items-center gap-1 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSetCover(index);
+                      }}
+                      className="text-gray-600 hover:text-brand-600 font-medium inline-flex items-center gap-1 transition-colors cursor-pointer text-[11px]"
                     >
                       <Star className="h-3 w-3" />
                       <span>Jadikan Cover</span>
                     </button>
                   ) : (
                     <span className="text-[11px] font-semibold text-brand-600 flex items-center gap-1">
-                      <span>✓ Ditampilkan di Depan</span>
+                      <span>✓ Cover Utama</span>
                     </span>
                   )}
 
                   {/* Replace Button */}
                   <button
                     type="button"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       setReplaceTargetIndex(index);
                       replaceFileInputRef.current?.click();
                     }}
                     disabled={isReplacing}
-                    className="text-gray-500 hover:text-gray-900 font-medium inline-flex items-center gap-1 transition-colors ml-auto"
+                    className="text-gray-500 hover:text-gray-900 font-medium inline-flex items-center gap-1 transition-colors ml-auto cursor-pointer text-[11px]"
                   >
                     <RefreshCw className="h-3 w-3" />
                     <span>Ganti</span>

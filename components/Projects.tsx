@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Playfair_Display } from "next/font/google";
-import { cn } from "@/lib/utils";
+import { cn, isProjectAcademic } from "@/lib/utils";
 import { ImageExpansionSlider, SlideItem } from "@/components/ui/image-expansion";
 import { supabase } from "@/lib/supabase/client";
 
@@ -41,19 +41,25 @@ export default function Projects({ initialProjects }: { initialProjects?: any[] 
     fetchProjects();
   }, []);
 
-  const slides: SlideItem[] = dbProjects.map((p) => ({
-    id: p.id,
-    category: p.category,
-    title: p.title,
-    company: p.company,
-    buttonText: p.button_text || "Visit Site",
-    image: p.image,
-    images: p.images && p.images.length > 0 ? p.images : [p.image],
-    url: p.url,
-    description: p.description,
-    modules: p.modules || [],
-    techStack: p.tech_stack || [],
-  }));
+  const slides: SlideItem[] = dbProjects.map((p) => {
+    const isAcademy = isProjectAcademic(p);
+    return {
+      id: p.id,
+      category: p.category,
+      badge: isAcademy ? "Academy" : undefined,
+      isAcademy,
+      title: p.title,
+      company: p.company,
+      buttonText: p.button_text || "Visit Site",
+      button_text: p.button_text,
+      image: p.image,
+      images: p.images && p.images.length > 0 ? p.images : [p.image],
+      url: p.url,
+      description: p.description,
+      modules: p.modules || [],
+      techStack: p.tech_stack || [],
+    };
+  });
 
   const dynamicTabs = [
     "All",

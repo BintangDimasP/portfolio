@@ -139,14 +139,14 @@ export default function TechTools({ initialTools, className }: TechToolsProps) {
 
   return (
     <div
-      className={`flex items-center justify-center text-[10px] min-[360px]:text-[11px] min-[400px]:text-[12.5px] sm:text-[14px] md:text-[16px] lg:text-[17px] ${
+      className={`flex items-center justify-center text-[9px] min-[360px]:text-[10px] min-[400px]:text-[11px] sm:text-[12px] md:text-[13.5px] lg:text-[14.5px] ${
         className || ""
       }`}
     >
       <GlassIcons
         items={items}
-        showLabel={false}
-        className="w-full justify-items-center gap-2 sm:gap-3.5 md:gap-4"
+        showLabel={true}
+        className="w-full justify-items-center"
       />
     </div>
   );

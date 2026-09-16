@@ -4,6 +4,7 @@ import React, { useState, useEffect, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { deleteProject, reorderProjects } from "@/app/admin/actions";
 import ProjectModal from "@/components/admin/ProjectModal";
+import { isProjectAcademic } from "@/lib/utils";
 import { Reorder } from "framer-motion";
 import {
   Plus,
@@ -264,10 +265,18 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
                     <h4 className="font-semibold text-gray-900 text-sm truncate">
                       {project.title}
                     </h4>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
                         {project.category}
                       </span>
+                      {isProjectAcademic(project) && (
+                        <span
+                          suppressHydrationWarning
+                          className="rounded-full bg-gray-100 border border-gray-200 text-gray-700 px-2 py-0.5 text-[10px] font-medium"
+                        >
+                          Academy
+                        </span>
+                      )}
                       {project.company && (
                         <span className="text-xs text-gray-400 truncate">
                           • {project.company}
@@ -333,10 +342,20 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
                       alt={project.title}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    {/* Category badge */}
-                    <span className="absolute top-3 left-3 rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-semibold text-gray-700">
-                      {project.category}
-                    </span>
+                    {/* Category & Academy badge */}
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap max-w-[70%]">
+                      <span className="rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 text-[10px] font-semibold text-gray-700 shadow-xs">
+                        {project.category}
+                      </span>
+                      {isProjectAcademic(project) && (
+                        <span
+                          suppressHydrationWarning
+                          className="rounded-full border border-gray-200 bg-white/95 backdrop-blur-sm px-2 py-0.5 text-[10px] font-medium text-gray-800 shadow-xs"
+                        >
+                          Academy
+                        </span>
+                      )}
+                    </div>
                     {/* Position badge */}
                     <span
                       className="absolute top-3 right-3 rounded-full border border-brand-200 bg-white/95 backdrop-blur-sm px-2.5 py-0.5 text-[11px] font-bold text-brand-600 shadow-xs"

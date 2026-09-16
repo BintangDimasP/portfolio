@@ -2,14 +2,17 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { isDesignCategory, isProjectAcademic } from "@/lib/utils";
 
 export interface SlideItem {
   id: number;
   badge?: string;
+  isAcademy?: boolean;
   category?: string;
   title: string;
   company?: string;
   buttonText?: string;
+  button_text?: string;
   image: string;
   images?: string[];
   url?: string;
@@ -337,6 +340,18 @@ export function ImageExpansionSlider({
                 <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
 
+              {/* Academy Badge in top-right corner, minimalist without icon */}
+              {isProjectAcademic(slide) && (
+                <div className="absolute top-3.5 right-3.5 z-30 pointer-events-none">
+                  <span
+                    suppressHydrationWarning
+                    className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-medium tracking-wide text-white bg-black/75 backdrop-blur-md border border-white/25 shadow-md select-none"
+                  >
+                    Academy
+                  </span>
+                </div>
+              )}
+
               {/* Content overlay */}
               <div className="absolute inset-0 z-10 flex flex-col justify-end p-5 sm:p-6">
                 <h3
@@ -439,17 +454,35 @@ export function ImageExpansionSlider({
               style={{ scrollbarWidth: "thin" }}
             >
               <div className="flex flex-col gap-5">
-                {/* Header (Title & Client/Instansi) */}
-                <div className="flex flex-col gap-1.5">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
-                    {selectedProject.title}
-                  </h3>
+                {/* Header (Title + Academy badge side-by-side, Client/Instansi, Category) */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
+                      {selectedProject.title}
+                    </h3>
+                    {isProjectAcademic(selectedProject) && (
+                      <span
+                        suppressHydrationWarning
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide text-neutral-200 bg-white/15 border border-white/25 select-none shadow-sm"
+                      >
+                        Academy
+                      </span>
+                    )}
+                  </div>
 
-                  {selectedProject.company && (
-                    <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-                      {selectedProject.company}
-                    </p>
-                  )}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {selectedProject.category && (
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-neutral-300 font-medium border border-white/10">
+                        {selectedProject.category}
+                      </span>
+                    )}
+
+                    {selectedProject.company && (
+                      <p className="text-xs sm:text-sm text-neutral-400 font-medium">
+                        • {selectedProject.company}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Divider */}
@@ -465,8 +498,10 @@ export function ImageExpansionSlider({
                   </p>
                 </div>
 
-                {/* Modul Section (rendered only if modules exist) */}
-                {selectedProject.modules && selectedProject.modules.length > 0 && (
+                {/* Modul Section (rendered only if modules exist and NOT a design category) */}
+                {!isDesignCategory(selectedProject.category) &&
+                  selectedProject.modules &&
+                  selectedProject.modules.length > 0 && (
                   <>
                     <div className="w-full h-px bg-neutral-800/80" />
                     <div className="flex flex-col gap-2.5">
@@ -491,10 +526,12 @@ export function ImageExpansionSlider({
                 {/* Divider */}
                 <div className="w-full h-px bg-neutral-800/80" />
 
-                {/* Tech Stack & Tools Section */}
+                {/* Tech Stack / Tools & Skills Section */}
                 <div className="flex flex-col gap-2.5">
                   <h4 className="text-xs font-extrabold uppercase tracking-wider text-neutral-400">
-                    Tech Stack &amp; Tools
+                    {isDesignCategory(selectedProject.category)
+                      ? "Tools & Skills"
+                      : "Tech Stack & Tools"}
                   </h4>
                   {selectedProject.techStack && selectedProject.techStack.length > 0 ? (
                     <div className="flex flex-wrap gap-2 pt-0.5">

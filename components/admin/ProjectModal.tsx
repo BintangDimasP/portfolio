@@ -6,7 +6,7 @@ import { saveProject } from "@/app/admin/actions";
 import { X, Loader2, ChevronDown, Sparkles } from "lucide-react";
 import SkillTagInput from "@/components/admin/SkillTagInput";
 import ProjectImageManager from "@/components/admin/ProjectImageManager";
-import { isGraphicDesignCategory } from "@/lib/utils";
+import { isDesignCategory, isProjectAcademic } from "@/lib/utils";
 
 interface ProjectModalProps {
   project?: any;
@@ -46,9 +46,12 @@ export default function ProjectModal({
     project?.category || DEFAULT_CATEGORIES[0]
   );
   const [customCategory, setCustomCategory] = useState<string>("");
+  const [isAcademic, setIsAcademic] = useState<boolean>(
+    isProjectAcademic(project)
+  );
 
   const currentCategory = selectedCategory === "__CUSTOM__" ? customCategory.trim() : selectedCategory;
-  const isGraphic = isGraphicDesignCategory(currentCategory);
+  const isDesign = isDesignCategory(currentCategory);
 
   useEffect(() => {
     if (isOpen) {
@@ -66,6 +69,7 @@ export default function ProjectModal({
       } else {
         setSelectedCategory(DEFAULT_CATEGORIES[0]);
       }
+      setIsAcademic(isProjectAcademic(project));
       setCustomCategory("");
       setError("");
     } else {
@@ -100,6 +104,8 @@ export default function ProjectModal({
 
     const formData = new FormData(e.currentTarget);
     formData.set("category", finalCategory);
+    formData.set("is_academic", isAcademic ? "true" : "false");
+    formData.set("button_text", isAcademic ? "Academy" : "Visit Site");
     formData.set("image", images[0]);
     formData.set("images", images.join("\n"));
 
@@ -226,6 +232,25 @@ export default function ProjectModal({
               </div>
             </div>
 
+            {/* Academy Project Checkbox Option */}
+            <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-4 py-3 hover:bg-gray-50 transition-colors">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  name="is_academic"
+                  checked={isAcademic}
+                  onChange={(e) => setIsAcademic(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500/20 cursor-pointer"
+                />
+                <span className="text-sm font-semibold text-gray-800">
+                  Academy
+                </span>
+                <span className="text-xs text-gray-400">
+                  (Tampilkan badge Academy di pojok kanan atas kartu)
+                </span>
+              </label>
+            </div>
+
             {/* Project Images (Add, Update/Replace, Delete, Cover) */}
             <ProjectImageManager
               images={images}
@@ -248,18 +273,9 @@ export default function ProjectModal({
               />
             </div>
 
-            {/* Modules (one per line) - Conditionally hidden for Graphic Design */}
-            {isGraphic ? (
-              <div className="rounded-xl border border-dashed border-amber-200 bg-amber-50/80 p-4 flex items-start gap-3 text-xs text-amber-900">
-                <Sparkles className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <div className="flex flex-col gap-1">
-                  <p className="font-semibold text-amber-950">Mode Portofolio Desain Grafis (Instagram Showcase)</p>
-                  <p className="text-amber-800/90 leading-relaxed">
-                    Kategori Graphic Design akan menampilkan galeri karya visual secara penuh (utuh tanpa terpotong) dengan navigasi multi-slide ala Instagram. Bagian modul teknis otomatis ditiadakan.
-                  </p>
-                </div>
-                <input type="hidden" name="modules" value="" />
-              </div>
+            {/* Modules (one per line) - Hidden for Design Categories */}
+            {isDesign ? (
+              <input type="hidden" name="modules" value="" />
             ) : (
               <div>
                 <label className={labelCls}>Modul / Fitur Utama (1 baris per modul)</label>
@@ -273,14 +289,14 @@ export default function ProjectModal({
               </div>
             )}
 
-            {/* Tech Stack (Dropdown & Tag Selector like LinkedIn) */}
+            {/* Tech Stack / Tools & Skills */}
             <SkillTagInput
               name="tech_stack"
-              label={isGraphic ? "Design Tools & Software" : "Tech Stack & Tools"}
+              label={isDesign ? "Tools & Skills" : "Tech Stack & Tools"}
               placeholder={
-                isGraphic
-                  ? "Cari atau pilih software desain (misal: Figma, Canva, Adobe Photoshop, Illustrator)..."
-                  : "Cari atau pilih tech stack (misal: Next.js, Figma, Tailwind CSS)..."
+                isDesign
+                  ? "Cari atau pilih tools & skills (misal: Figma, Wireframing, User Research, Prototyping, Adobe Illustrator, Canva)..."
+                  : "Cari atau pilih tech stack & tools (misal: Next.js, React, Tailwind CSS, PostgreSQL)..."
               }
               initialSkills={project?.tech_stack || []}
             />
