@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveProject } from "@/app/admin/actions";
-import { X, Loader2, ChevronDown, Sparkles } from "lucide-react";
+import { X, Loader2, ChevronDown, Sparkles, Briefcase } from "lucide-react";
 import SkillTagInput from "@/components/admin/SkillTagInput";
 import ProjectImageManager from "@/components/admin/ProjectImageManager";
-import { isDesignCategory, isProjectAcademic } from "@/lib/utils";
+import { isDesignCategory, isProjectAcademic, getProjectRole } from "@/lib/utils";
 
 interface ProjectModalProps {
   project?: any;
@@ -16,6 +16,16 @@ interface ProjectModalProps {
 }
 
 const DEFAULT_CATEGORIES = ["Web Developer", "UI/UX Design", "Graphic Design"];
+
+const PRESET_ROLES = [
+  "Fullstack Developer",
+  "Frontend Developer",
+  "Backend Developer",
+  "Mobile App Developer",
+  "UI/UX & Frontend Developer",
+  "DevOps / Cloud Engineer",
+  "Software Engineer / Lead Dev",
+];
 
 const inputCls =
   "h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand-300 focus:bg-white focus:outline-none focus:ring-3 focus:ring-brand-500/10 transition-all";
@@ -50,6 +60,14 @@ export default function ProjectModal({
     isProjectAcademic(project)
   );
 
+  // Role state (for Web Dev / non-design categories)
+  const [selectedRole, setSelectedRole] = useState<string>("");
+  const [customRole, setCustomRole] = useState<string>("");
+
+  // Confirmation modal state before save/create
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+
   const currentCategory = selectedCategory === "__CUSTOM__" ? customCategory.trim() : selectedCategory;
   const isDesign = isDesignCategory(currentCategory);
 
@@ -70,8 +88,23 @@ export default function ProjectModal({
         setSelectedCategory(DEFAULT_CATEGORIES[0]);
       }
       setIsAcademic(isProjectAcademic(project));
+
+      const existingRole = getProjectRole(project) || "";
+      if (PRESET_ROLES.includes(existingRole)) {
+        setSelectedRole(existingRole);
+        setCustomRole("");
+      } else if (existingRole) {
+        setSelectedRole("__CUSTOM__");
+        setCustomRole(existingRole);
+      } else {
+        setSelectedRole("");
+        setCustomRole("");
+      }
+
       setCustomCategory("");
       setError("");
+      setShowConfirmSave(false);
+      setPendingFormData(null);
     } else {
       document.body.style.overflow = "";
     }
@@ -83,7 +116,7 @@ export default function ProjectModal({
 
   if (!isOpen) return null;
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handlePreSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
 
@@ -102,20 +135,30 @@ export default function ProjectModal({
       return;
     }
 
+    const finalRole = isDesign ? "" : (selectedRole === "__CUSTOM__" ? customRole.trim() : selectedRole);
+
     const formData = new FormData(e.currentTarget);
     formData.set("category", finalCategory);
+    formData.set("role", finalRole);
     formData.set("is_academic", isAcademic ? "true" : "false");
-    formData.set("button_text", isAcademic ? "Academy" : "Visit Site");
     formData.set("image", images[0]);
     formData.set("images", images.join("\n"));
 
+    setPendingFormData(formData);
+    setShowConfirmSave(true);
+  };
+
+  const handleConfirmedSave = () => {
+    if (!pendingFormData) return;
     startTransition(async () => {
       try {
-        await saveProject(formData);
+        await saveProject(pendingFormData);
         router.refresh();
+        setShowConfirmSave(false);
         onClose();
       } catch (err: any) {
         setError(err.message || "Gagal menyimpan proyek.");
+        setShowConfirmSave(false);
       }
     });
   };
@@ -141,7 +184,7 @@ export default function ProjectModal({
         </div>
 
         {/* Form Container with scrollable body & sticky footer */}
-        <form onSubmit={onSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
+        <form onSubmit={handlePreSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Scrollable Form Body */}
           <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-5">
             {error && (
@@ -232,6 +275,53 @@ export default function ProjectModal({
               </div>
             </div>
 
+            {/* Role in Project (Web Dev / Non-Design Only) */}
+            {!isDesign && (
+              <div className="rounded-xl border border-brand-100 bg-brand-50/40 p-3.5 flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
+                    <Briefcase className="w-4 h-4 text-brand-600" />
+                    Role Anda dalam Proyek
+                  </label>
+                  <span className="text-[11px] text-brand-700 bg-brand-100/70 font-medium px-2 py-0.5 rounded-full">
+                    Khusus Web Dev
+                  </span>
+                </div>
+                <div className="relative">
+                  <select
+                    value={selectedRole}
+                    onChange={(e) => {
+                      setSelectedRole(e.target.value);
+                      if (e.target.value !== "__CUSTOM__") setCustomRole("");
+                    }}
+                    className={`${inputCls} appearance-none pr-10 cursor-pointer bg-white`}
+                  >
+                    <option value="">-- Pilih Role (Opsional) --</option>
+                    {PRESET_ROLES.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                    <option value="__CUSTOM__">✨ + Ketik Role Lainnya...</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                </div>
+
+                {selectedRole === "__CUSTOM__" && (
+                  <div className="mt-1 flex flex-col gap-1">
+                    <input
+                      type="text"
+                      placeholder="Ketik role kustom Anda (misal: AI Engineer, Tech Lead...)"
+                      value={customRole}
+                      onChange={(e) => setCustomRole(e.target.value)}
+                      autoFocus
+                      className={`${inputCls} bg-white`}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Academy Project Checkbox Option */}
             <div className="rounded-xl border border-gray-200 bg-gray-50/80 px-4 py-3 hover:bg-gray-50 transition-colors">
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
@@ -246,7 +336,7 @@ export default function ProjectModal({
                   Academy
                 </span>
                 <span className="text-xs text-gray-400">
-                  (Tampilkan badge Academy di pojok kanan atas kartu)
+                  (Tampilkan badge Academy di bawah judul proyek)
                 </span>
               </label>
             </div>
@@ -340,6 +430,46 @@ export default function ProjectModal({
           </div>
         </form>
       </div>
+
+      {/* Confirmation Modal for Save / Create */}
+      {showConfirmSave && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600 mb-4">
+              <Sparkles className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">
+              {project ? "Konfirmasi Simpan Perubahan" : "Konfirmasi Buat Proyek"}
+            </h3>
+            <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+              Apakah Anda yakin ingin {project ? "menyimpan perubahan pada" : "menambahkan"} proyek{" "}
+              <strong className="text-gray-900 font-semibold">
+                &quot;{pendingFormData?.get("title")?.toString() || ""}&quot;
+              </strong>
+              ? Data akan langsung diperbarui ke portfolio publik.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => setShowConfirmSave(false)}
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleConfirmedSave}
+                className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600 transition-colors shadow-theme-xs disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {project ? "Ya, Simpan" : "Ya, Tambah"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

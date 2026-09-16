@@ -4,7 +4,7 @@ import React, { useState, useEffect, useTransition, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { deleteProject, reorderProjects } from "@/app/admin/actions";
 import ProjectModal from "@/components/admin/ProjectModal";
-import { isProjectAcademic } from "@/lib/utils";
+import { isProjectAcademic, getProjectRole } from "@/lib/utils";
 import { Reorder } from "framer-motion";
 import {
   Plus,
@@ -56,12 +56,21 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
     return matchCategory && matchSearch;
   });
 
-  const handleDelete = (id: number, title: string) => {
-    if (!confirm(`Hapus proyek "${title}"? Tindakan ini tidak dapat dibatalkan.`)) return;
+  const [deleteConfirmProject, setDeleteConfirmProject] = useState<{ id: number; title: string } | null>(null);
+
+  const handleExecuteDelete = () => {
+    if (!deleteConfirmProject) return;
+    const { id } = deleteConfirmProject;
     setProjects((prev) => prev.filter((p) => p.id !== id));
     startTransition(async () => {
-      await deleteProject(id);
-      router.refresh();
+      try {
+        await deleteProject(id);
+        router.refresh();
+        setDeleteConfirmProject(null);
+      } catch (err) {
+        console.error("Gagal menghapus proyek:", err);
+        setDeleteConfirmProject(null);
+      }
     });
   };
 
@@ -277,11 +286,15 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
                           Academy
                         </span>
                       )}
-                      {project.company && (
-                        <span className="text-xs text-gray-400 truncate">
-                          • {project.company}
-                        </span>
-                      )}
+                      {(() => {
+                        const role = getProjectRole(project);
+                        if (!role && !project.company) return null;
+                        return (
+                          <span className="text-xs text-gray-400 truncate">
+                            • {role ? `${role}${project.company ? ` • ${project.company}` : ""}` : project.company}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -371,9 +384,18 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
                       <h3 className="font-semibold text-gray-900 leading-snug line-clamp-2">
                         {project.title}
                       </h3>
-                      {project.company && (
-                        <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">{project.company}</p>
-                      )}
+                      {(() => {
+                        const role = getProjectRole(project);
+                        if (role || project.company) {
+                          return (
+                            <p className="mt-0.5 text-xs text-gray-400 line-clamp-1">
+                              {role && <span className="text-brand-600 font-medium">{role} • </span>}
+                              {project.company}
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()}
                       <p className="mt-2 text-xs text-gray-500 line-clamp-3 leading-relaxed">
                         {project.description}
                       </p>
@@ -411,7 +433,7 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
                         <Edit2 className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => handleDelete(project.id, project.title)}
+                        onClick={() => setDeleteConfirmProject({ id: project.id, title: project.title })}
                         disabled={isPending}
                         className="flex h-8 w-8 items-center justify-center rounded-lg border border-error-100 bg-error-50 text-error-600 hover:bg-error-100 transition-colors"
                         title="Hapus Proyek"
@@ -465,6 +487,44 @@ export default function ProjectList({ initialProjects }: ProjectListProps) {
         onClose={() => { setIsModalOpen(false); setEditingProject(null); }}
         existingCategories={categories.filter((c) => c !== "All")}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmProject && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
+          <div className="relative w-full max-w-md rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-error-50 text-error-600 mb-4">
+              <Trash2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">Konfirmasi Hapus Proyek</h3>
+            <p className="mt-2 text-sm text-gray-600 leading-relaxed">
+              Apakah Anda yakin ingin menghapus proyek{" "}
+              <strong className="text-gray-900 font-semibold">
+                &quot;{deleteConfirmProject.title}&quot;
+              </strong>
+              ? Tindakan ini permanen dan tidak dapat dibatalkan.
+            </p>
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={() => setDeleteConfirmProject(null)}
+                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100 transition-colors disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isPending}
+                onClick={handleExecuteDelete}
+                className="inline-flex items-center gap-2 rounded-lg bg-error-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-error-700 transition-colors shadow-theme-xs disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

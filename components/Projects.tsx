@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { cn, isProjectAcademic } from "@/lib/utils";
+import { cn, isProjectAcademic, getProjectRole } from "@/lib/utils";
 import { ImageExpansionSlider, SlideItem } from "@/components/ui/image-expansion";
 import { supabase } from "@/lib/supabase/client";
 import { playfair } from "@/lib/fonts";
@@ -36,11 +36,13 @@ export default function Projects({ initialProjects }: { initialProjects?: any[] 
 
   const slides: SlideItem[] = dbProjects.map((p) => {
     const isAcademy = isProjectAcademic(p);
+    const role = getProjectRole(p) || undefined;
     return {
       id: p.id,
       category: p.category,
       badge: isAcademy ? "Academy" : undefined,
       isAcademy,
+      role,
       title: p.title,
       company: p.company,
       buttonText: p.button_text || "Visit Site",

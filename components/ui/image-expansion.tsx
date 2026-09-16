@@ -10,6 +10,7 @@ export interface SlideItem {
   badge?: string;
   isAcademy?: boolean;
   category?: string;
+  role?: string;
   title: string;
   company?: string;
   buttonText?: string;
@@ -367,11 +368,17 @@ export function ImageExpansionSlider({
                 >
                   {slide.title}
                 </h3>
-                {slide.company && (
+                {(slide.role || slide.company) && (
                   <p
                     className="text-xs sm:text-[13px] font-medium text-white/80 mt-1 truncate max-w-[95%]"
-                    title={slide.company}
+                    title={`${slide.role && !isDesignCategory(slide.category) ? `${slide.role} • ` : ""}${slide.company || ""}`}
                   >
+                    {slide.role && !isDesignCategory(slide.category) && (
+                      <span className="text-white font-semibold">
+                        {slide.role}
+                        {slide.company ? " • " : ""}
+                      </span>
+                    )}
                     {slide.company}
                   </p>
                 )}
@@ -467,35 +474,45 @@ export function ImageExpansionSlider({
               style={{ scrollbarWidth: "thin" }}
             >
               <div className="flex flex-col gap-5">
-                {/* Header (Title + Academy badge side-by-side, Client/Instansi, Category) */}
+                {/* Header (Title, Badges row: Category & Academy, Subtitle row: Role & Instansi) */}
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2.5 flex-wrap">
-                    <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
-                      {selectedProject.title}
-                    </h3>
-                    {isProjectAcademic(selectedProject) && (
-                      <span
-                        suppressHydrationWarning
-                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wide text-neutral-200 bg-white/15 border border-white/25 select-none shadow-sm"
-                      >
-                        Academy
-                      </span>
-                    )}
-                  </div>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-white leading-tight tracking-tight">
+                    {selectedProject.title}
+                  </h3>
 
+                  {/* Line 2: Category & Academy badges */}
                   <div className="flex items-center gap-2 flex-wrap">
                     {selectedProject.category && (
                       <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 text-neutral-300 font-medium border border-white/10">
                         {selectedProject.category}
                       </span>
                     )}
-
-                    {selectedProject.company && (
-                      <p className="text-xs sm:text-sm text-neutral-400 font-medium">
-                        • {selectedProject.company}
-                      </p>
+                    {isProjectAcademic(selectedProject) && (
+                      <span
+                        suppressHydrationWarning
+                        className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide text-neutral-200 bg-white/15 border border-white/25 select-none shadow-sm"
+                      >
+                        Academy
+                      </span>
                     )}
                   </div>
+
+                  {/* Line 3: Role & Instansi / Perusahaan */}
+                  {(selectedProject.role || selectedProject.company) && (
+                    <p className="text-xs sm:text-sm text-neutral-400 font-medium flex items-center gap-1.5 flex-wrap">
+                      {selectedProject.role && !isDesignCategory(selectedProject.category) && (
+                        <span className="text-brand-400 font-semibold text-white/90">
+                          {selectedProject.role}
+                        </span>
+                      )}
+                      {selectedProject.role && !isDesignCategory(selectedProject.category) && selectedProject.company && (
+                        <span className="text-neutral-500">•</span>
+                      )}
+                      {selectedProject.company && (
+                        <span>{selectedProject.company}</span>
+                      )}
+                    </p>
+                  )}
                 </div>
 
                 {/* Divider */}

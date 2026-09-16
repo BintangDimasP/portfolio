@@ -73,16 +73,25 @@ export async function saveProject(formData: FormData) {
     ? rawTech.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
+  const rawRole = (formData.get("role") as string) || "";
+  const role = isDesign ? "" : rawRole.trim();
+
   const isAcademic =
     formData.get("is_academic") === "true" ||
     formData.get("is_academic") === "on" ||
-    formData.get("button_text") === "Academy";
+    formData.get("button_text") === "Academy" ||
+    (formData.get("button_text") as string || "").startsWith("Academy::");
 
-  const projectPayload = {
+  let buttonTextValue = isAcademic ? "Academy" : "Visit Site";
+  if (role) {
+    buttonTextValue = isAcademic ? `Academy::${role}` : `Role::${role}`;
+  }
+
+  const projectPayload: any = {
     title: formData.get("title") as string,
     category: rawCategory,
     company: (formData.get("company") as string) || null,
-    button_text: isAcademic ? "Academy" : "Visit Site",
+    button_text: buttonTextValue,
     image: formData.get("image") as string,
     images: images.length > 0 ? images : [formData.get("image") as string],
     url: (formData.get("url") as string) || null,

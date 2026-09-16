@@ -35,7 +35,8 @@ export function isDesignCategory(category?: string | null): boolean {
 
 export function isProjectAcademic(project?: any): boolean {
   if (!project) return false;
-  const btn = String(project.button_text || project.buttonText || "").trim().toLowerCase();
+  const rawBtn = String(project.button_text || project.buttonText || "").trim().toLowerCase();
+  const btn = rawBtn.split("::")[0].trim();
   const badge = String(project.badge || "").trim().toLowerCase();
   return (
     btn === "academy" ||
@@ -47,6 +48,20 @@ export function isProjectAcademic(project?: any): boolean {
     project.isAcademy === true ||
     project.isAcademy === "true"
   );
+}
+
+export function getProjectRole(project?: any): string | null {
+  if (!project) return null;
+  if (project.role && typeof project.role === "string" && project.role.trim()) {
+    return project.role.trim();
+  }
+  const btn = String(project.button_text || project.buttonText || "").trim();
+  if (btn.includes("::")) {
+    const parts = btn.split("::");
+    const rolePart = parts.slice(1).join("::").trim();
+    return rolePart || null;
+  }
+  return null;
 }
 
 export function normalizeSocialUrl(url: string | null | undefined, platform: "github" | "linkedin"): string {
