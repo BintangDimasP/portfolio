@@ -749,7 +749,9 @@ export async function uploadProfileCV(formData: FormData) {
   const buffer = Buffer.from(arrayBuffer);
 
   // 1. Simpan ke file lokal public/cv.pdf
-  let cvUrl = "/cv.pdf";
+  // Gunakan timestamp sebagai cache-busting agar browser tidak pakai versi lama dari cache
+  const cacheBuster = Date.now();
+  let cvUrl = `/cv.pdf?v=${cacheBuster}`;
   try {
     const publicCvPath = path.join(process.cwd(), "public", "cv.pdf");
     await fs.writeFile(publicCvPath, buffer);
@@ -757,7 +759,7 @@ export async function uploadProfileCV(formData: FormData) {
     console.warn("Local CV write note:", localErr);
   }
 
-  // 2. Unggah ke Supabase Storage
+  // 2. Unggah ke Supabase Storage (jika berhasil, gunakan URL Supabase yang unik)
   try {
     const { error: uploadError } = await supabase.storage
       .from("project-images")
@@ -771,6 +773,7 @@ export async function uploadProfileCV(formData: FormData) {
         .from("project-images")
         .getPublicUrl(filePath);
       if (publicUrlData?.publicUrl) {
+        // Supabase URL sudah unik per-upload (ada timestamp di nama file), tidak perlu cache-busting tambahan
         cvUrl = publicUrlData.publicUrl;
       }
     } else {
@@ -780,23 +783,32 @@ export async function uploadProfileCV(formData: FormData) {
     console.warn("Supabase storage error, using local fallback:", storageErr);
   }
 
-  // 3. Otomatis simpan ke profil database Supabase & profile.json
+  // 3. Simpan cv_url baru ke profile.json lokal
   try {
     const currentProfile = await getProfile();
     const updatedProfile = { ...currentProfile, cv_url: cvUrl };
     await writeLocalJson("profile.json", updatedProfile);
+  } catch (localSaveErr) {
+    console.warn("Failed to update local profile.json with new cv_url:", localSaveErr);
+  }
+
+  // 4. Simpan cv_url baru ke database Supabase (terpisah agar error tidak saling memblokir)
+  try {
+    const currentProfile = await getProfile();
     await supabase.from("profile").upsert({
       id: 1,
-      ...updatedProfile,
+      ...currentProfile,
+      cv_url: cvUrl,
       updated_at: new Date().toISOString(),
     });
-    revalidatePath("/", "page");
-    revalidatePath("/", "layout");
-    revalidatePath("/admin", "page");
-    revalidatePath("/admin/profile", "page");
-  } catch (saveErr) {
-    console.warn("Auto-save CV to profile note:", saveErr);
+  } catch (dbSaveErr) {
+    console.warn("Failed to update Supabase profile with new cv_url:", dbSaveErr);
   }
+
+  revalidatePath("/", "page");
+  revalidatePath("/", "layout");
+  revalidatePath("/admin", "page");
+  revalidatePath("/admin/profile", "page");
 
   return { url: cvUrl };
 }

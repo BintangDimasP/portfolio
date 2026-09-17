@@ -29,6 +29,29 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "25mb", // Mengizinkan payload upload s/d 20 MB (+ buffer overhead)
     },
   },
+  async headers() {
+    return [
+      {
+        // Paksa browser untuk selalu mengecek ulang file /cv.pdf (no-cache)
+        // sehingga saat CV di-update, versi baru langsung tampil tanpa perlu clear cache
+        source: "/cv.pdf",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Pragma",
+            value: "no-cache",
+          },
+          {
+            key: "Expires",
+            value: "0",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
