@@ -649,19 +649,28 @@ export async function saveProfile(formData: FormData) {
     soft_skills,
   };
 
-  // 1. Always write to local JSON for immediate effect
-  await writeLocalJson("profile.json", profilePayload);
+  // 1. Simpan ke Supabase database
+  const supabase = getAdminSupabase();
+  const { error: dbError } = await supabase.from("profile").upsert({
+    id: 1,
+    ...profilePayload,
+    updated_at: new Date().toISOString(),
+  });
 
-  // 2. Try Supabase upsert
+  if (dbError) {
+    console.error("Supabase profile upsert error:", dbError);
+    let msg = dbError.message;
+    if (msg.toLowerCase().includes("row-level") || msg.toLowerCase().includes("policy")) {
+      msg += " (Pastikan variabel SUPABASE_SERVICE_ROLE_KEY sudah ditambahkan pada Environment Variables di dashboard hosting/Vercel).";
+    }
+    throw new Error(`Gagal menyimpan profil ke database Supabase: ${msg}`);
+  }
+
+  // 2. Tulis ke file JSON lokal sebagai cadangan (hanya berdampak saat local dev)
   try {
-    const supabase = getAdminSupabase();
-    await supabase.from("profile").upsert({
-      id: 1,
-      ...profilePayload,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (err: any) {
-    console.warn("Supabase profile upsert note:", err?.message || err);
+    await writeLocalJson("profile.json", profilePayload);
+  } catch (localErr) {
+    console.warn("Local profile write note (safe to ignore in serverless):", localErr);
   }
 
   revalidatePath("/", "page");
@@ -697,35 +706,49 @@ export async function uploadProfileAvatar(formData: FormData) {
       upsert: true,
     });
 
-  let avatarUrl = `/me.jpg`;
-  if (!uploadError) {
-    const { data: publicUrlData } = supabase.storage
-      .from("project-images")
-      .getPublicUrl(filePath);
-    if (publicUrlData?.publicUrl) {
-      avatarUrl = publicUrlData.publicUrl;
+  if (uploadError) {
+    console.error("Storage upload avatar error:", uploadError);
+    let msg = uploadError.message;
+    if (msg.toLowerCase().includes("row-level") || msg.toLowerCase().includes("policy") || msg.toLowerCase().includes("permission")) {
+      msg += " (Pastikan SUPABASE_SERVICE_ROLE_KEY sudah ditambahkan pada Environment Variables di dashboard hosting/Vercel).";
     }
-  } else {
-    console.warn("Storage upload avatar note:", uploadError.message);
+    throw new Error(`Gagal mengunggah foto profil ke Supabase: ${msg}`);
   }
 
-  // Otomatis simpan ke profile database & local JSON
-  try {
-    const currentProfile = await getProfile();
-    const updatedProfile = { ...currentProfile, avatar_url: avatarUrl };
-    await writeLocalJson("profile.json", updatedProfile);
-    await supabase.from("profile").upsert({
-      id: 1,
-      ...updatedProfile,
-      updated_at: new Date().toISOString(),
-    });
-    revalidatePath("/", "page");
-    revalidatePath("/", "layout");
-    revalidatePath("/admin", "page");
-    revalidatePath("/admin/profile", "page");
-  } catch (saveErr) {
-    console.warn("Auto-save avatar note:", saveErr);
+  const { data: publicUrlData } = supabase.storage
+    .from("project-images")
+    .getPublicUrl(filePath);
+
+  if (!publicUrlData?.publicUrl) {
+    throw new Error("Gagal memperoleh public URL untuk foto profil.");
   }
+
+  const avatarUrl = publicUrlData.publicUrl;
+
+  // Otomatis simpan ke profile database
+  const currentProfile = await getProfile();
+  const updatedProfile = { ...currentProfile, avatar_url: avatarUrl };
+
+  const { error: dbError } = await supabase.from("profile").upsert({
+    id: 1,
+    ...updatedProfile,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (dbError) {
+    console.error("Database update avatar error:", dbError);
+    throw new Error(`Gagal menyimpan foto profil ke database: ${dbError.message}`);
+  }
+
+  // Backup lokal untuk local dev
+  try {
+    await writeLocalJson("profile.json", updatedProfile);
+  } catch {}
+
+  revalidatePath("/", "page");
+  revalidatePath("/", "layout");
+  revalidatePath("/admin", "page");
+  revalidatePath("/admin/profile", "page");
 
   return { url: avatarUrl };
 }
@@ -742,67 +765,69 @@ export async function uploadProfileCV(formData: FormData) {
   }
 
   const supabase = getAdminSupabase();
-  const fileName = `cv-${Date.now()}.pdf`;
+  const fileExt = file.name.split(".").pop() || "pdf";
+  const fileName = `cv-${Date.now()}.${fileExt}`;
   const filePath = `profile/${fileName}`;
 
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  // 1. Simpan ke file lokal public/cv.pdf
-  // Gunakan timestamp sebagai cache-busting agar browser tidak pakai versi lama dari cache
-  const cacheBuster = Date.now();
-  let cvUrl = `/cv.pdf?v=${cacheBuster}`;
+  // 1. Unggah ke Supabase Storage (Wajib berhasil)
+  const { error: uploadError } = await supabase.storage
+    .from("project-images")
+    .upload(filePath, buffer, {
+      contentType: "application/pdf",
+      upsert: true,
+    });
+
+  if (uploadError) {
+    console.error("Storage upload CV error:", uploadError);
+    let msg = uploadError.message;
+    if (msg.toLowerCase().includes("mime") || msg.toLowerCase().includes("not allowed")) {
+      msg += " (Pastikan di Supabase Dashboard > Storage > bucket 'project-images' > Configuration, 'Allowed MIME types' mengizinkan application/pdf atau dikosongkan).";
+    }
+    if (msg.toLowerCase().includes("row-level") || msg.toLowerCase().includes("policy") || msg.toLowerCase().includes("permission")) {
+      msg += " (Pastikan SUPABASE_SERVICE_ROLE_KEY sudah ditambahkan pada Environment Variables di dashboard hosting/Vercel).";
+    }
+    throw new Error(`Gagal mengunggah CV ke Supabase Storage: ${msg}`);
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("project-images")
+    .getPublicUrl(filePath);
+
+  if (!publicUrlData?.publicUrl) {
+    throw new Error("Gagal memperoleh URL publik untuk file CV yang diunggah.");
+  }
+
+  const cvUrl = publicUrlData.publicUrl;
+
+  // 2. Simpan cv_url baru ke database Supabase (Wajib berhasil)
+  const currentProfile = await getProfile();
+  const updatedProfile = { ...currentProfile, cv_url: cvUrl };
+
+  const { error: dbError } = await supabase.from("profile").upsert({
+    id: 1,
+    ...updatedProfile,
+    updated_at: new Date().toISOString(),
+  });
+
+  if (dbError) {
+    console.error("Database update cv error:", dbError);
+    let msg = dbError.message;
+    if (msg.toLowerCase().includes("row-level") || msg.toLowerCase().includes("policy")) {
+      msg += " (Pastikan SUPABASE_SERVICE_ROLE_KEY sudah terpasang di Vercel agar dapat mengubah data profil).";
+    }
+    throw new Error(`File CV berhasil diunggah ke storage, tapi gagal disimpan ke database profil: ${msg}`);
+  }
+
+  // 3. Cadangan lokal (hanya berdampak saat local development, aman diabaikan di serverless production)
   try {
+    await writeLocalJson("profile.json", updatedProfile);
     const publicCvPath = path.join(process.cwd(), "public", "cv.pdf");
     await fs.writeFile(publicCvPath, buffer);
   } catch (localErr) {
-    console.warn("Local CV write note:", localErr);
-  }
-
-  // 2. Unggah ke Supabase Storage (jika berhasil, gunakan URL Supabase yang unik)
-  try {
-    const { error: uploadError } = await supabase.storage
-      .from("project-images")
-      .upload(filePath, buffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-
-    if (!uploadError) {
-      const { data: publicUrlData } = supabase.storage
-        .from("project-images")
-        .getPublicUrl(filePath);
-      if (publicUrlData?.publicUrl) {
-        // Supabase URL sudah unik per-upload (ada timestamp di nama file), tidak perlu cache-busting tambahan
-        cvUrl = publicUrlData.publicUrl;
-      }
-    } else {
-      console.warn("Storage upload CV warning:", uploadError.message);
-    }
-  } catch (storageErr) {
-    console.warn("Supabase storage error, using local fallback:", storageErr);
-  }
-
-  // 3. Simpan cv_url baru ke profile.json lokal
-  try {
-    const currentProfile = await getProfile();
-    const updatedProfile = { ...currentProfile, cv_url: cvUrl };
-    await writeLocalJson("profile.json", updatedProfile);
-  } catch (localSaveErr) {
-    console.warn("Failed to update local profile.json with new cv_url:", localSaveErr);
-  }
-
-  // 4. Simpan cv_url baru ke database Supabase (terpisah agar error tidak saling memblokir)
-  try {
-    const currentProfile = await getProfile();
-    await supabase.from("profile").upsert({
-      id: 1,
-      ...currentProfile,
-      cv_url: cvUrl,
-      updated_at: new Date().toISOString(),
-    });
-  } catch (dbSaveErr) {
-    console.warn("Failed to update Supabase profile with new cv_url:", dbSaveErr);
+    // Di Vercel serverless filesystem bersifat read-only, abaikan jika gagal
   }
 
   revalidatePath("/", "page");

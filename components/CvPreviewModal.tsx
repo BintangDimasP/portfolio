@@ -80,26 +80,51 @@ export default function CvPreviewModal({
             className="fixed inset-0 z-[250] flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-6 animate-in fade-in duration-200"
             onClick={() => setIsOpen(false)}
           >
-            {/* Floating Close Button */}
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all cursor-pointer border border-white/10 shadow-lg"
-              aria-label="Tutup preview"
-            >
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {/* Floating Action Buttons */}
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+              <a
+                href={cvUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download="CV_Bintang_Dimas.pdf"
+                className="h-9 px-3.5 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center gap-1.5 backdrop-blur-md transition-all cursor-pointer border border-white/10 shadow-lg text-xs font-semibold"
+                title="Buka / Unduh File PDF"
               >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
+                <svg
+                  className="w-3.5 h-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                <span>Unduh CV</span>
+              </a>
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center backdrop-blur-md transition-all cursor-pointer border border-white/10 shadow-lg"
+                aria-label="Tutup preview"
+              >
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
 
             {/* Card Container without top header */}
             <div
