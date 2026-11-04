@@ -57,6 +57,7 @@ export default function ProfileManager({
   const [linkedinUrl, setLinkedinUrl] = useState(initialProfile.linkedin_url || "");
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadingCv, setUploadingCv] = useState(false);
+  const [cvMsg, setCvMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   useEffect(() => {
     if (initialProfile.github_url !== undefined) setGithubUrl(initialProfile.github_url || "");
@@ -106,11 +107,12 @@ export default function ProfileManager({
     if (!file) return;
 
     if (file.size > 20 * 1024 * 1024) {
-      setProfileMsg({ type: "error", text: "Ukuran file CV melebihi batas maksimal 20 MB." });
+      setCvMsg({ type: "error", text: "Ukuran file CV melebihi batas maksimal 20 MB." });
       return;
     }
 
     setUploadingCv(true);
+    setCvMsg(null);
     setProfileMsg(null);
     try {
       const formData = new FormData();
@@ -118,13 +120,22 @@ export default function ProfileManager({
       const res = await uploadProfileCV(formData);
       if (res?.url) {
         setCvUrl(res.url);
+        const fileName = res.url.split("/").pop() || "cv.pdf";
+        setCvMsg({
+          type: "success",
+          text: `File CV berhasil diunggah & otomatis disimpan! (${fileName})`,
+        });
         setProfileMsg({ type: "success", text: "File CV (.pdf) berhasil diunggah & otomatis disimpan!" });
         router.refresh();
       }
     } catch (err: any) {
-      setProfileMsg({ type: "error", text: err.message || "Gagal mengunggah file CV." });
+      console.error("Upload CV error:", err);
+      const errorText = err?.message || "Gagal mengunggah file CV.";
+      setCvMsg({ type: "error", text: errorText });
+      setProfileMsg({ type: "error", text: errorText });
     } finally {
       setUploadingCv(false);
+      e.target.value = "";
     }
   };
 
@@ -330,11 +341,18 @@ export default function ProfileManager({
 
               {/* File CV (PDF) */}
               <div className="rounded-xl border border-gray-200/80 bg-gray-50/50 p-4 flex flex-col gap-3">
-                <label className={labelCls}>
-                  File Dokumen CV (.pdf) <span className="text-error-500">*</span>
-                </label>
-                <div className="flex items-center gap-4">
-                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-2 border-brand-500/20 bg-brand-50 text-brand-600 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <label className={labelCls}>
+                    File Dokumen CV (.pdf) <span className="text-error-500">*</span>
+                  </label>
+                  {cvUrl && (
+                    <span className="text-[11px] font-mono text-gray-500 max-w-[200px] truncate" title={cvUrl}>
+                      Aktif: <strong className="text-brand-600">{cvUrl.split("/").pop()}</strong>
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-2 border-brand-500/20 bg-brand-50 text-brand-600 shadow-sm mt-0.5">
                     <FileText className="h-8 w-8" />
                   </div>
                   <div className="flex flex-col gap-2 flex-1">
@@ -362,14 +380,38 @@ export default function ProfileManager({
                         </a>
                       )}
                     </div>
-                    <input
-                      type="text"
-                      name="cv_url"
-                      value={cvUrl}
-                      onChange={(e) => setCvUrl(e.target.value)}
-                      placeholder="/cv.pdf atau URL cloud"
-                      className="h-8 rounded-lg border border-gray-200 bg-white px-2.5 text-xs text-gray-700"
-                    />
+
+                    {/* Inline Feedback Pesan Langsung di Kartu CV */}
+                    {cvMsg && (
+                      <div
+                        className={`rounded-lg p-2.5 text-xs font-medium flex items-center gap-2 ${
+                          cvMsg.type === "success"
+                            ? "border border-emerald-200 bg-emerald-50 text-emerald-700"
+                            : "border border-red-200 bg-red-50 text-red-700"
+                        }`}
+                      >
+                        {cvMsg.type === "success" ? (
+                          <CheckCircle2 className="h-4 w-4 shrink-0" />
+                        ) : (
+                          <span className="text-sm shrink-0">⚠️</span>
+                        )}
+                        <span className="break-all">{cvMsg.text}</span>
+                      </div>
+                    )}
+
+                    <div className="flex flex-col gap-1">
+                      <input
+                        type="text"
+                        name="cv_url"
+                        value={cvUrl}
+                        onChange={(e) => setCvUrl(e.target.value)}
+                        placeholder="/cv.pdf atau URL cloud"
+                        className="h-8 rounded-lg border border-gray-200 bg-white px-2.5 text-xs text-gray-700 font-mono"
+                      />
+                      <span className="text-[10px] text-gray-400">
+                        Link cloud aktif dari Supabase. Otomatis terupdate saat Anda memilih file di atas.
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
