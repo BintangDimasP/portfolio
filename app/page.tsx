@@ -13,7 +13,8 @@ import ScrollBlurSection from "@/components/ScrollBlurSection";
 import { ArrowRight } from "lucide-react";
 import { getProjects, getExperiences, getProfile, getTechTools } from "@/app/admin/actions";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Home() {
   const [projects, experiences, profile, techTools] = await Promise.all([

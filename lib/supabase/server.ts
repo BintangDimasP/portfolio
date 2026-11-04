@@ -17,5 +17,12 @@ export function getAdminSupabase() {
       persistSession: false,
       autoRefreshToken: false,
     },
+    global: {
+      fetch: (url, options = {}) =>
+        fetch(url, {
+          ...options,
+          cache: "no-store",
+        }),
+    },
   });
 }
